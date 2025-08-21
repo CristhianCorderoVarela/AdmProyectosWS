@@ -1,0 +1,28 @@
+# ============================
+# Java / Maven / NetBeans
+# ============================
+
+# Archivos compilados
+*.class
+*.jar
+*.war
+*.ear
+
+# Directorios de Maven
+/target/
+
+# Carpetas de NetBeans
+/nbproject/private/
+/build/
+/dist/
+/nbbuild/
+/nbdist/
+/nbactions.xml
+/nb-configuration.xml
+
+# Archivos temporales de sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+  <display-name>AdmProyectosWS</display-name>
+
+  <!-- Tiempo de sesión (opcional) -->
+  <session-config>
+    <session-timeout>30</session-timeout>
+  </session-config>
+
+  <!-- Listener de Metro (JAX-WS) -->
+  <listener>
+    <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
+  </listener>
+
+  <!-- Servlet de Metro (publica los endpoints definidos en sun-jaxws.xml) -->
+  <servlet>
+    <servlet-name>AuthWS</servlet-name>
+    <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <!-- Mapeo del endpoint SOAP (URL pública) -->
+  <servlet-mapping>
+    <servlet-name>AuthWS</servlet-name>
+    <url-pattern>/AuthWS</url-pattern>
+  </servlet-mapping>
+
+
+</web-app>
