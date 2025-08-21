@@ -6,28 +6,12 @@
 
   <display-name>AdmProyectosWS</display-name>
 
-  <!-- Tiempo de sesión (opcional) -->
   <session-config>
     <session-timeout>30</session-timeout>
   </session-config>
 
-  <!-- Listener de Metro (JAX-WS) -->
-  <listener>
-    <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
-  </listener>
-
-  <!-- Servlet de Metro (publica los endpoints definidos en sun-jaxws.xml) -->
-  <servlet>
-    <servlet-name>AuthWS</servlet-name>
-    <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
-    <load-on-startup>1</load-on-startup>
-  </servlet>
-
-  <!-- Mapeo del endpoint SOAP (URL pública) -->
-  <servlet-mapping>
-    <servlet-name>AuthWS</servlet-name>
-    <url-pattern>/AuthWS</url-pattern>
-  </servlet-mapping>
-
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
 
 </web-app>
