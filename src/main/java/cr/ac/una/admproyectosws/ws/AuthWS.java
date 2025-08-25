@@ -38,8 +38,7 @@ public class AuthWS {
                 .getSingleResult();
 
             AdministradorDto dto = new AdministradorDto(
-                a.getId(), a.getNombre(), a.getApellidos(),
-                a.getUsuario(), a.getCorreo(), a.getEstado()
+                a.getId(), a.getNombre(), a.getApellidos(), a.getCedula(), a.getCorreo(), a.getUsuario(), a.getEstado()   
             );
             return new RespuestaLogin(true, "Autenticación exitosa", dto);
 

@@ -6,17 +6,22 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class RespuestaLogin {
+public class RespuestaGeneral<T> {
     private boolean ok;
     private String mensaje;
-    private AdministradorDto administrador;
+    private T data;
 
-    public RespuestaLogin() {}
+    public RespuestaGeneral() {}
 
-    public RespuestaLogin(boolean ok, String mensaje, AdministradorDto administrador) {
+    public RespuestaGeneral(boolean ok, String mensaje) {
         this.ok = ok;
         this.mensaje = mensaje;
-        this.administrador = administrador;
+    }
+
+    public RespuestaGeneral(boolean ok, String mensaje, T data) {
+        this.ok = ok;
+        this.mensaje = mensaje;
+        this.data = data;
     }
 
     // Getters y Setters
@@ -26,6 +31,6 @@ public class RespuestaLogin {
     public String getMensaje() { return mensaje; }
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }
 
-    public AdministradorDto getAdministrador() { return administrador; }
-    public void setAdministrador(AdministradorDto administrador) { this.administrador = administrador; }
+    public T getData() { return data; }
+    public void setData(T data) { this.data = data; }
 }
