@@ -3,7 +3,6 @@ package cr.ac.una.admproyectosws.ws;
 import cr.ac.una.admproyectosws.dto.AdministradorDto;
 import cr.ac.una.admproyectosws.dto.RespuestaLogin;
 import cr.ac.una.admproyectosws.model.Administrador;
-
 import jakarta.ejb.Stateless;
 import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;
@@ -20,9 +19,7 @@ public class AuthWS {
     private EntityManager em;
 
     @WebMethod
-    public String ping() {
-        return "AuthService OK";
-    }
+    public String ping() { return "AuthService OK"; }
 
     @WebMethod
     public RespuestaLogin login(
@@ -30,26 +27,19 @@ public class AuthWS {
             @WebParam(name = "password") String password) {
 
         try {
-            // Normalizamos entradas (evita NPE por trim si viene null, sin cambiar funcionalidad)
-            final String usr = (username == null) ? "" : username.trim();
-            final String pwd = (password == null) ? "" : password.trim();
-
-            // *** CAMBIO MINIMO: usar NamedQuery predefinida en la entidad ***
-            Administrador a = em.createNamedQuery("Administrador.login", Administrador.class)
-                    .setParameter("usuario", usr)
-                    .setParameter("password", pwd)
-                    .getSingleResult();
+            Administrador a = em.createQuery(
+                    "SELECT a FROM Administrador a " +
+                    "WHERE a.usuario = :usr " +
+                    "  AND a.estado = 'ACTIVO' " +
+                    "  AND a.passwordPlain = :pwd",
+                    Administrador.class)
+                .setParameter("usr", username.trim())
+                .setParameter("pwd", password.trim())
+                .getSingleResult();
 
             AdministradorDto dto = new AdministradorDto(
-                a.getId(),
-                a.getNombre(),
-                a.getApellidos(),
-                a.getCedula(),
-                a.getCorreo(),
-                a.getUsuario(),
-                a.getEstado()
+                a.getId(), a.getNombre(), a.getApellidos(), a.getCedula(), a.getCorreo(), a.getUsuario(), a.getEstado()   
             );
-
             return new RespuestaLogin(true, "Autenticación exitosa", dto);
 
         } catch (NoResultException ex) {
