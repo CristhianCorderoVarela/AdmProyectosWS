@@ -26,3 +26,6 @@
             implementation="cr.ac.una.admproyectosws.ws.ReporteWS"
             url-pattern="/ReporteWS"/> -->  
 </endpoints>
+
+
+ <!-- nota  -->  
