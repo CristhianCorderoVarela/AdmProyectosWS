@@ -8,22 +8,55 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
 import java.util.List;
 
+/**
+ * Respuesta para operaciones que retornan listas.
+ * Se define como clase independiente (no hereda del genérico) para evitar
+ * problemas de JAXB con campos genéricos y acceso por FIELD.
+ */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-// Avisa a JAXB qué tipos de elementos puede encontrar dentro de la lista:
 @XmlSeeAlso({ ProyectoDto.class })
-public class RespuestaGeneralLista<T> extends RespuestaGeneral<List<T>> {
+public class RespuestaGeneralLista<T> {
 
-    // Sobrescribimos getter para declarar EXPRESAMENTE que es una LISTA y cómo serializarla
-    @Override
-    @XmlElementWrapper(name = "items")     // <items> ... </items>
-    @XmlElement(name = "item")             // cada elemento <item>...</item>
-    public List<T> getData() {
-        return super.getData();
+    private boolean ok;
+    private String mensaje;
+
+    // <items><item>...</item></items>
+    @XmlElementWrapper(name = "items")
+    @XmlElement(name = "item")
+    private List<T> data;
+
+    public RespuestaGeneralLista() {
     }
 
-    @Override
+    public RespuestaGeneralLista(boolean ok, String mensaje, List<T> data) {
+        this.ok = ok;
+        this.mensaje = mensaje;
+        this.data = data;
+    }
+
+    // Getters / Setters
+    public boolean isOk() {
+        return ok;
+    }
+
+    public void setOk(boolean ok) {
+        this.ok = ok;
+    }
+
+    public String getMensaje() {
+        return mensaje;
+    }
+
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
+    }
+
+    public List<T> getData() {
+        return data;
+    }
+
     public void setData(List<T> data) {
-        super.setData(data);
+        this.data = data;
     }
 }
