@@ -2,6 +2,7 @@ package cr.ac.una.admproyectosws.ws;
 
 import cr.ac.una.admproyectosws.dto.ProyectoDto;
 import cr.ac.una.admproyectosws.dto.RespuestaGeneral;
+import cr.ac.una.admproyectosws.dto.RespuestaGeneralLista;
 import cr.ac.una.admproyectosws.service.ProyectoService;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
@@ -46,21 +47,35 @@ public class ProyectoWS {
             @WebParam(name = "id") Long id) {
         return proyectoService.buscarPorId(id);
     }
-    
     @WebMethod
-    public RespuestaGeneral<List<ProyectoDto>> obtenerTodosProyectos() {
-        return proyectoService.obtenerTodos();
-    }
-    
-    @WebMethod
-    public RespuestaGeneral<List<ProyectoDto>> buscarProyectosActivos() {
-        return proyectoService.buscarActivos();
-    }
-    
-    // Implementación con Streams como requiere la tarea
-    @WebMethod
-    public RespuestaGeneral<List<ProyectoDto>> buscarProyectosConStreams(
-            @WebParam(name = "filtro") String filtro) {
-        return proyectoService.buscarConStreams(filtro);
-    }
+    // Antes: public RespuestaGeneral<List<ProyectoDto>> obtenerTodosProyectos()
+public RespuestaGeneralLista<ProyectoDto> obtenerTodosProyectos() {
+    var r = proyectoService.obtenerTodos(); // ya devuelve RespuestaGeneral<List<ProyectoDto>>
+    var out = new RespuestaGeneralLista<ProyectoDto>();
+    out.setOk(r.isOk());
+    out.setMensaje(r.getMensaje());
+    out.setData(r.getData());
+    return out;
+}
+@WebMethod
+// Antes: RespuestaGeneral<List<ProyectoDto>> buscarProyectosActivos()
+public RespuestaGeneralLista<ProyectoDto> buscarProyectosActivos() {
+    var r = proyectoService.buscarActivos();
+    var out = new RespuestaGeneralLista<ProyectoDto>();
+    out.setOk(r.isOk());
+    out.setMensaje(r.getMensaje());
+    out.setData(r.getData());
+    return out;
+}
+@WebMethod
+// Antes: RespuestaGeneral<List<ProyectoDto>> buscarProyectosConStreams(String filtro)
+public RespuestaGeneralLista<ProyectoDto> buscarProyectosConStreams(String filtro) {
+    var r = proyectoService.buscarConStreams(filtro);
+    var out = new RespuestaGeneralLista<ProyectoDto>();
+    out.setOk(r.isOk());
+    out.setMensaje(r.getMensaje());
+    out.setData(r.getData());
+    return out;
+}
+
 }
