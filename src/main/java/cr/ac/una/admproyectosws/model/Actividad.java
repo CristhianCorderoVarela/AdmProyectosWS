@@ -14,8 +14,14 @@ import java.util.Date;
                 query = "SELECT a FROM Actividad a WHERE a.proyecto.id = :proyectoId AND a.estado = :estado ORDER BY a.ordenEjecucion")
 })
 public class Actividad {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ACTIVIDAD_SEQ")
+    @SequenceGenerator(
+        name = "ACTIVIDAD_SEQ",
+        sequenceName = "SEQ_ACTIVIDAD_ID", // nombre exacto de la secuencia en tu BD
+        allocationSize = 1
+    )
     @Column(name = "ID")
     private Long id;
     
