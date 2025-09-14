@@ -8,6 +8,7 @@ import jakarta.ejb.Stateless;
 import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;
 import jakarta.jws.WebService;
+import java.util.Collections;
 import java.util.List;
 
 @Stateless
@@ -55,5 +56,14 @@ public class AdministradorWS {
     public RespuestaGeneral<List<AdministradorDto>> buscarAdministradores(
             @WebParam(name = "filtro") String filtro) {
         return administradorService.buscar(filtro);
+    }
+    
+    @WebMethod
+    public List<AdministradorDto> obtenerTodosPlano() {
+        RespuestaGeneral<List<AdministradorDto>> rg = administradorService.obtenerTodos();
+        if (rg != null && Boolean.TRUE.equals(rg.isOk()) && rg.getData() != null) {
+            return rg.getData();
+        }
+        return Collections.emptyList();
     }
 }
