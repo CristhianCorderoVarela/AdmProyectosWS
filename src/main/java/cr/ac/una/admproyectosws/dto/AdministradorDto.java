@@ -54,18 +54,16 @@ public class AdministradorDto {
     }
 
     /** Convierte el DTO en entidad (crear/actualizar). */
-    public Administrador toEntity() {
-        Administrador admin = new Administrador();
-        admin.setId(this.id);
-        admin.setNombre(this.nombre);
-        admin.setApellidos(this.apellidos);
-        admin.setCedula(this.cedula);
-        admin.setCorreo(this.correo);
-        admin.setUsuario(this.usuario);
-        admin.setEstado(this.estado);
-        admin.setPasswordPlain(this.passwordPlain);  // el servicio decide si hashea
-        admin.setFechaCreacion(this.fechaCreacion);
-        admin.setFechaModificacion(this.fechaModificacion);
+   public Administrador toEntity() {
+    Administrador admin = new Administrador();
+    admin.setId(this.id);
+    admin.setNombre(this.nombre);
+    admin.setApellidos(this.apellidos);
+    admin.setCedula(this.cedula);
+    admin.setCorreo(this.correo);
+    admin.setUsuario(this.usuario);
+    admin.setEstado(this.estado);
+    admin.setPasswordPlain(this.passwordPlain);
         return admin;
     }
 

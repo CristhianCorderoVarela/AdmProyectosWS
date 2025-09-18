@@ -22,6 +22,7 @@ import java.util.List;
                 query = "SELECT a FROM Administrador a WHERE a.usuario = :usuario AND a.passwordPlain = :password AND a.estado = 'ACTIVO'")
 })
 public class Administrador {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
@@ -49,29 +50,25 @@ public class Administrador {
     private String estado;
     
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "FECHA_CREACION")
+    @Column(name = "FECHA_CREACION", updatable = false)
     private Date fechaCreacion;
     
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "FECHA_MODIFICACION")
     private Date fechaModificacion;
 
-    // Relaciones
+    // === Relaciones ===
     @OneToMany(mappedBy = "creadoPor", fetch = FetchType.LAZY)
     private List<Proyecto> proyectosCreados;
     
     @OneToMany(mappedBy = "creadoPor", fetch = FetchType.LAZY)
     private List<SeguimientoProyecto> seguimientosCreados;
 
-    // Constructores
-    public Administrador() {
-        this.fechaCreacion = new Date();
-        this.fechaModificacion = new Date();
-    }
+    // === Constructores ===
+    public Administrador() {}
 
     public Administrador(String nombre, String apellidos, String cedula, String correo, 
-                        String usuario, String passwordPlain, String estado) {
-        this();
+                         String usuario, String passwordPlain, String estado) {
         this.nombre = nombre;
         this.apellidos = apellidos;
         this.cedula = cedula;
@@ -81,13 +78,20 @@ public class Administrador {
         this.estado = estado;
     }
 
-    // Métodos de ciclo de vida
+    // === Ciclo de vida ===
+    @PrePersist
+    protected void prePersist() {
+        Date now = new Date();
+        if (this.fechaCreacion == null) this.fechaCreacion = now;
+        if (this.fechaModificacion == null) this.fechaModificacion = now;
+    }
+
     @PreUpdate
-    public void preUpdate() {
+    protected void preUpdate() {
         this.fechaModificacion = new Date();
     }
 
-    // Getters y Setters
+    // === Getters y Setters ===
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
