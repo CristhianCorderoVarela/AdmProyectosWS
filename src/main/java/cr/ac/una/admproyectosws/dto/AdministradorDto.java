@@ -17,7 +17,7 @@ public class AdministradorDto {
     private String correo;
     private String usuario;
     private String estado;
-    private String passwordPlain;          // requerido por la BD (NOT NULL al crear)
+    private String passwordPlain;          // puede ir null al enviar al cliente
     private Date fechaCreacion;
     private Date fechaModificacion;
 
@@ -32,13 +32,14 @@ public class AdministradorDto {
             this.correo = administrador.getCorreo();
             this.usuario = administrador.getUsuario();
             this.estado = administrador.getEstado();
-            // Si no quieres exponer la contraseña al cliente, comenta la siguiente línea:
-            this.passwordPlain = administrador.getPasswordPlain();   // opcional exponer
+            // Si no quieres exponer, no asignes passwordPlain aquí
+            // this.passwordPlain = administrador.getPasswordPlain();
             this.fechaCreacion = administrador.getFechaCreacion();
             this.fechaModificacion = administrador.getFechaModificacion();
         }
     }
 
+    // >>> ARREGLO: implementar correctamente este constructor <<<
     public AdministradorDto(Long id, String nombre, String apellidos, String cedula,
                             String correo, String usuario, String estado) {
         this.id = id;
@@ -48,9 +49,11 @@ public class AdministradorDto {
         this.correo = correo;
         this.usuario = usuario;
         this.estado = estado;
+        this.passwordPlain = null; // nunca exponer al cliente
+        // fechaCreacion / fechaModificacion pueden quedar null aquí
     }
 
-    /** Convierte el DTO en entidad (para crear). */
+    /** Convierte el DTO en entidad (crear/actualizar). */
     public Administrador toEntity() {
         Administrador admin = new Administrador();
         admin.setId(this.id);
@@ -60,13 +63,13 @@ public class AdministradorDto {
         admin.setCorreo(this.correo);
         admin.setUsuario(this.usuario);
         admin.setEstado(this.estado);
-        admin.setPasswordPlain(this.passwordPlain);  // IMPORTANTE para evitar ORA-01400
+        admin.setPasswordPlain(this.passwordPlain);  // el servicio decide si hashea
         admin.setFechaCreacion(this.fechaCreacion);
         admin.setFechaModificacion(this.fechaModificacion);
         return admin;
     }
 
-    // Getters y Setters
+    // Getters / Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

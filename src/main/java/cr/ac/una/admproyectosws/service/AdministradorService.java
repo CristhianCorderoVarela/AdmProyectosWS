@@ -4,6 +4,7 @@ import cr.ac.una.admproyectosws.dao.AdministradorDao;
 import cr.ac.una.admproyectosws.dto.AdministradorDto;
 import cr.ac.una.admproyectosws.dto.RespuestaGeneral;
 import cr.ac.una.admproyectosws.model.Administrador;
+import cr.ac.una.admproyectosws.utils.PasswordUtil;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import java.util.List;
@@ -19,47 +20,39 @@ public class AdministradorService {
     public RespuestaGeneral<AdministradorDto> crear(AdministradorDto dto) {
         try {
             // Validaciones mínimas
-            if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) {
+            if (dto.getNombre() == null || dto.getNombre().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "El nombre es requerido");
-            }
-            if (dto.getApellidos() == null || dto.getApellidos().trim().isEmpty()) {
+            if (dto.getApellidos() == null || dto.getApellidos().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "Los apellidos son requeridos");
-            }
-            if (dto.getCedula() == null || dto.getCedula().trim().isEmpty()) {
+            if (dto.getCedula() == null || dto.getCedula().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "La cédula es requerida");
-            }
-            if (dto.getCorreo() == null || dto.getCorreo().trim().isEmpty()) {
+            if (dto.getCorreo() == null || dto.getCorreo().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "El correo es requerido");
-            }
-            if (dto.getUsuario() == null || dto.getUsuario().trim().isEmpty()) {
+            if (dto.getUsuario() == null || dto.getUsuario().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "El usuario es requerido");
-            }
-            // CONTRASEÑA obligatoria al crear (evita ORA-01400)
-            if (dto.getPasswordPlain() == null || dto.getPasswordPlain().trim().isEmpty()) {
+            if (dto.getPasswordPlain() == null || dto.getPasswordPlain().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "La contraseña es obligatoria");
-            }
 
             // Unicidad
-            if (administradorDao.existeUsuario(dto.getUsuario())) {
+            if (administradorDao.existeUsuario(dto.getUsuario()))
                 return new RespuestaGeneral<>(false, "Ya existe un administrador con ese usuario");
-            }
-            if (administradorDao.existeCorreo(dto.getCorreo())) {
+            if (administradorDao.existeCorreo(dto.getCorreo()))
                 return new RespuestaGeneral<>(false, "Ya existe un administrador con ese correo");
-            }
-            if (administradorDao.existeCedula(dto.getCedula())) {
+            if (administradorDao.existeCedula(dto.getCedula()))
                 return new RespuestaGeneral<>(false, "Ya existe un administrador con esa cédula");
-            }
 
+            // Mapear entidad
             Administrador admin = dto.toEntity();
-            if (admin.getEstado() == null) {
-                admin.setEstado("ACTIVO");
-            }
+            if (admin.getEstado() == null) admin.setEstado("ACTIVO");
 
-            // (Opcional: hashear aquí la contraseña antes de persistir)
-            // admin.setPasswordPlain( hash(dto.getPasswordPlain()) );
+            // Hashear y guardar
+            admin.setPasswordPlain(PasswordUtil.hash(dto.getPasswordPlain()));
 
             admin = administradorDao.crear(admin);
-            return new RespuestaGeneral<>(true, "Administrador creado exitosamente", new AdministradorDto(admin));
+
+            AdministradorDto out = new AdministradorDto(admin);
+            out.setPasswordPlain(null); // Nunca devolver password/hash
+            return new RespuestaGeneral<>(true, "Administrador creado exitosamente", out);
 
         } catch (Exception e) {
             return new RespuestaGeneral<>(false, "Error al crear administrador: " + e.getMessage());
@@ -69,11 +62,11 @@ public class AdministradorService {
     public RespuestaGeneral<AdministradorDto> actualizar(AdministradorDto dto) {
         try {
             Optional<Administrador> adminOpt = administradorDao.buscarPorId(dto.getId());
-            if (!adminOpt.isPresent()) {
+            if (adminOpt.isEmpty())
                 return new RespuestaGeneral<>(false, "Administrador no encontrado");
-            }
 
             Administrador admin = adminOpt.get();
+
             admin.setNombre(dto.getNombre());
             admin.setApellidos(dto.getApellidos());
             admin.setCedula(dto.getCedula());
@@ -81,15 +74,16 @@ public class AdministradorService {
             admin.setUsuario(dto.getUsuario());
             admin.setEstado(dto.getEstado());
 
-            // Cambio de contraseña SOLO si viene no vacía (no afecta otros flujos)
+            // Si viene nueva contraseña no vacía, la hasheamos y actualizamos
             if (dto.getPasswordPlain() != null && !dto.getPasswordPlain().trim().isEmpty()) {
-                // (Opcional: hashear aquí)
-                // admin.setPasswordPlain( hash(dto.getPasswordPlain()) );
-                admin.setPasswordPlain(dto.getPasswordPlain());
+                admin.setPasswordPlain(PasswordUtil.hash(dto.getPasswordPlain()));
             }
 
             admin = administradorDao.actualizar(admin);
-            return new RespuestaGeneral<>(true, "Administrador actualizado exitosamente", new AdministradorDto(admin));
+
+            AdministradorDto out = new AdministradorDto(admin);
+            out.setPasswordPlain(null); // Nunca devolver password/hash
+            return new RespuestaGeneral<>(true, "Administrador actualizado exitosamente", out);
 
         } catch (Exception e) {
             return new RespuestaGeneral<>(false, "Error al actualizar administrador: " + e.getMessage());
@@ -109,7 +103,9 @@ public class AdministradorService {
         try {
             Optional<Administrador> adminOpt = administradorDao.buscarPorId(id);
             if (adminOpt.isPresent()) {
-                return new RespuestaGeneral<>(true, "Administrador encontrado", new AdministradorDto(adminOpt.get()));
+                AdministradorDto out = new AdministradorDto(adminOpt.get());
+                out.setPasswordPlain(null);
+                return new RespuestaGeneral<>(true, "Administrador encontrado", out);
             } else {
                 return new RespuestaGeneral<>(false, "Administrador no encontrado");
             }
@@ -122,8 +118,8 @@ public class AdministradorService {
         try {
             List<Administrador> administradores = administradorDao.obtenerTodos();
             List<AdministradorDto> dtos = administradores.stream()
-                    .map(AdministradorDto::new)
-                    .collect(Collectors.toList());
+                .map(a -> { AdministradorDto d = new AdministradorDto(a); d.setPasswordPlain(null); return d; })
+                .collect(Collectors.toList());
             return new RespuestaGeneral<>(true, "Administradores obtenidos exitosamente", dtos);
         } catch (Exception e) {
             return new RespuestaGeneral<>(false, "Error al obtener administradores: " + e.getMessage());
@@ -134,8 +130,8 @@ public class AdministradorService {
         try {
             List<Administrador> administradores = administradorDao.buscar(filtro);
             List<AdministradorDto> dtos = administradores.stream()
-                    .map(AdministradorDto::new)
-                    .collect(Collectors.toList());
+                .map(a -> { AdministradorDto d = new AdministradorDto(a); d.setPasswordPlain(null); return d; })
+                .collect(Collectors.toList());
             return new RespuestaGeneral<>(true, "Búsqueda realizada exitosamente", dtos);
         } catch (Exception e) {
             return new RespuestaGeneral<>(false, "Error en la búsqueda: " + e.getMessage());
