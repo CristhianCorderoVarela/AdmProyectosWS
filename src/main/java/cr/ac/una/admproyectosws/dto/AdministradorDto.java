@@ -1,3 +1,4 @@
+// src/main/java/cr/ac/una/admproyectosws/dto/AdministradorDto.java
 package cr.ac.una.admproyectosws.dto;
 
 import cr.ac.una.admproyectosws.model.Administrador;
@@ -9,6 +10,7 @@ import java.util.Date;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AdministradorDto {
+
     private Long id;
     private String nombre;
     private String apellidos;
@@ -16,6 +18,7 @@ public class AdministradorDto {
     private String correo;
     private String usuario;
     private String estado;
+    private String passwordPlain;          // <-- NUEVO: requerido por la BD (NOT NULL)
     private Date fechaCreacion;
     private Date fechaModificacion;
 
@@ -30,13 +33,16 @@ public class AdministradorDto {
             this.correo = administrador.getCorreo();
             this.usuario = administrador.getUsuario();
             this.estado = administrador.getEstado();
+            // Si NO quieres exponer la contraseña al cliente cuando lees,
+            // puedes comentar la siguiente línea:
+            this.passwordPlain = administrador.getPasswordPlain();   // <-- opcional exponer
             this.fechaCreacion = administrador.getFechaCreacion();
             this.fechaModificacion = administrador.getFechaModificacion();
         }
     }
 
     public AdministradorDto(Long id, String nombre, String apellidos, String cedula,
-                           String correo, String usuario, String estado) {
+                            String correo, String usuario, String estado) {
         this.id = id;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -46,7 +52,7 @@ public class AdministradorDto {
         this.estado = estado;
     }
 
-    // Método para convertir DTO a entidad
+    /** Convierte el DTO en entidad */
     public Administrador toEntity() {
         Administrador admin = new Administrador();
         admin.setId(this.id);
@@ -56,6 +62,7 @@ public class AdministradorDto {
         admin.setCorreo(this.correo);
         admin.setUsuario(this.usuario);
         admin.setEstado(this.estado);
+        admin.setPasswordPlain(this.passwordPlain);  // <-- IMPORTANTE para evitar ORA-01400
         admin.setFechaCreacion(this.fechaCreacion);
         admin.setFechaModificacion(this.fechaModificacion);
         return admin;
@@ -82,6 +89,9 @@ public class AdministradorDto {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getPasswordPlain() { return passwordPlain; }
+    public void setPasswordPlain(String passwordPlain) { this.passwordPlain = passwordPlain; }
 
     public Date getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(Date fechaCreacion) { this.fechaCreacion = fechaCreacion; }
