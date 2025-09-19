@@ -1,31 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <endpoints version="2.0"
   xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime">
-
   <endpoint name="AuthWS"
             implementation="cr.ac.una.admproyectosws.ws.AuthWS"
-            url-pattern="/AuthWS"/>
-
+            url-pattern="/AuthService/AuthWS"/>
   <endpoint name="AdministradorWS"
             implementation="cr.ac.una.admproyectosws.ws.AdministradorWS"
-            url-pattern="/AdministradorWS"/>
-
+            url-pattern="/AdministradorService/AdministradorWS"/>
   <endpoint name="ProyectoWS"
             implementation="cr.ac.una.admproyectosws.ws.ProyectoWS"
-            url-pattern="/ProyectoWS"/>
-
+            url-pattern="/ProyectoService/ProyectoWS"/>
   <endpoint name="ActividadWS"
             implementation="cr.ac.una.admproyectosws.ws.ActividadWS"
-            url-pattern="/ActividadWS"/>
-
+            url-pattern="/ActividadService/ActividadWS"/>
   <endpoint name="SeguimientoWS"
             implementation="cr.ac.una.admproyectosws.ws.SeguimientoWS"
-            url-pattern="/SeguimientoWS"/>
-
-  <!-- <endpoint name="ReporteWS"
+            url-pattern="/SeguimientoService/SeguimientoWS"/>
+  <endpoint name="ReporteWS"
             implementation="cr.ac.una.admproyectosws.ws.ReporteWS"
-            url-pattern="/ReporteWS"/> -->  
+            url-pattern="/ExcelService/ReporteWS"/>
 </endpoints>
-
-
- <!-- nota  -->  
