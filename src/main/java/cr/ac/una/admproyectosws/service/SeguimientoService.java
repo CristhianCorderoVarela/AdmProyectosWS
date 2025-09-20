@@ -21,7 +21,8 @@ import java.util.stream.Collectors;
 
 @Stateless
 public class SeguimientoService {
-
+    
+    @EJB private EmailService emailService;
     @EJB private SeguimientoProyectoDao seguimientoDao;
     @EJB private ProyectoDao proyectoDao;
     @EJB private AdministradorDao administradorDao;
@@ -32,29 +33,37 @@ public class SeguimientoService {
     // ====== CRUD ======
 
     public RespuestaWsLista crear(SeguimientoProyectoDto dto) {
-        try {
-            validar(dto, true);
+    try {
+        validar(dto, true);
 
-            Proyecto proyecto = em.find(Proyecto.class, dto.getProyectoId());
-            if (proyecto == null) return RespuestaWsLista.error("Proyecto no existe");
+        Proyecto proyecto = em.find(Proyecto.class, dto.getProyectoId());
+        if (proyecto == null) return RespuestaWsLista.error("Proyecto no existe");
 
-            Administrador creador = em.find(Administrador.class, dto.getCreadoPorId());
-            if (creador == null) return RespuestaWsLista.error("Administrador no existe");
+        Administrador creador = em.find(Administrador.class, dto.getCreadoPorId());
+        if (creador == null) return RespuestaWsLista.error("Administrador no existe");
 
-            SeguimientoProyecto ent = new SeguimientoProyecto();
-            copiar(dto, ent, proyecto, creador);
-            em.persist(ent);
+        SeguimientoProyecto ent = new SeguimientoProyecto();
+        copiar(dto, ent, proyecto, creador);
+        em.persist(ent);
 
-            if (dto.getPorcentajeAvance() != null) {
-                proyecto.setPorcentajeAvance(dto.getPorcentajeAvance());
-            }
-
-            em.flush();
-            return RespuestaWsLista.okUno(new SeguimientoProyectoDto(ent), "Seguimiento creado");
-        } catch (Exception e) {
-            return RespuestaWsLista.error("Error al crear seguimiento: " + e.getMessage());
+        if (dto.getPorcentajeAvance() != null) {
+            proyecto.setPorcentajeAvance(dto.getPorcentajeAvance());
         }
+
+        em.flush();
+
+        try {
+            emailService.notificarSeguimientoProyecto(ent);
+        } catch (Exception ex) {
+            System.err.println("Error enviando notificación de seguimiento: " + ex.getMessage());
+        }
+
+        return RespuestaWsLista.okUno(new SeguimientoProyectoDto(ent), "Seguimiento creado");
+    } catch (Exception e) {
+        return RespuestaWsLista.error("Error al crear seguimiento: " + e.getMessage());
     }
+}
+
 
     public RespuestaWsLista actualizar(SeguimientoProyectoDto dto) {
         try {
