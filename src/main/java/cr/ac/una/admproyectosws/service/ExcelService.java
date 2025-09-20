@@ -27,8 +27,8 @@ public class ExcelService {
     
     public RespuestaExcel generarCronogramaProyecto(Long proyectoId) {
         try {
-            // Buscar el proyecto
-            Optional<Proyecto> proyectoOpt = proyectoDao.buscarPorId(proyectoId);
+            // === CAMBIO: usar lectura fresca con fetch de colecciones ===
+            Optional<Proyecto> proyectoOpt = proyectoDao.buscarPorIdRefrescadoConColecciones(proyectoId);
             if (!proyectoOpt.isPresent()) {
                 return new RespuestaExcel(false, "Proyecto no encontrado");
             }
@@ -77,6 +77,9 @@ public class ExcelService {
                     cell.setCellValue(headers[i]);
                     cell.setCellStyle(headerStyle);
                 }
+
+                // (Opcional) congelar encabezado para scroll cómodo
+                sheet.createFreezePane(0, headerRow.getRowNum() + 1);
                 
                 // Datos de actividades
                 List<Actividad> actividades = proyecto.getActividades();
@@ -123,14 +126,19 @@ public class ExcelService {
                     sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 1, 7));
                 }
                 
-                // Ajustar ancho de columnas
+                // === CAMBIO: Anchos mínimos grandes + autoSize + tope ===
+                // Unidades POI: 1 carácter ≈ 256 unidades
+                int[] minChars = new int[] { 8, 40, 25, 15, 18, 18, 18, 18 };
                 for (int i = 0; i < headers.length; i++) {
-                    sheet.autoSizeColumn(i);
-                    // Limitar el ancho máximo
-                    if (sheet.getColumnWidth(i) > 15000) {
-                        sheet.setColumnWidth(i, 15000);
-                    }
+                    sheet.autoSizeColumn(i); // que crezca si el contenido lo amerita
+                    int minWidth = minChars[i] * 256;
+                    int maxWidth = 15000; // tope (≈ 58 chars)
+                    int current = sheet.getColumnWidth(i);
+                    if (current < minWidth) sheet.setColumnWidth(i, minWidth);
+                    else if (current > maxWidth) sheet.setColumnWidth(i, maxWidth);
                 }
+                // Altura por defecto un poco mayor para que el wrap se note
+                sheet.setDefaultRowHeightInPoints(18f);
                 
                 // Escribir a byte array
                 workbook.write(outputStream);

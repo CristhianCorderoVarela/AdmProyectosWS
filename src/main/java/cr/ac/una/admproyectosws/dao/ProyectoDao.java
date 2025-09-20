@@ -1,18 +1,22 @@
 package cr.ac.una.admproyectosws.dao;
 
 import cr.ac.una.admproyectosws.model.Proyecto;
+import cr.ac.una.admproyectosws.model.Actividad; // para tocar campos/ordenar
 import jakarta.ejb.Stateless;
+import jakarta.persistence.CacheRetrieveMode;
+import jakarta.persistence.CacheStoreMode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import java.util.Date;   // para ordenar por fecha
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 @Stateless
 public class ProyectoDao {
-    
+
     @PersistenceContext(unitName = "ProyectoPU")
     private EntityManager em;
 
@@ -42,9 +46,56 @@ public class ProyectoDao {
         }
     }
 
+    /** Lectura fresca + fetch de actividades para evitar snapshots viejos en el WS. */
+    public Optional<Proyecto> buscarPorIdRefrescadoConColecciones(Long id) {
+        try {
+            TypedQuery<Proyecto> q = em.createQuery(
+                "SELECT DISTINCT p FROM Proyecto p " +
+                "LEFT JOIN FETCH p.actividades a " +   // trae actividades en la misma consulta
+                "WHERE p.id = :id", Proyecto.class);
+
+            q.setParameter("id", id);
+            q.setHint("jakarta.persistence.cache.retrieveMode", CacheRetrieveMode.BYPASS);
+            q.setHint("jakarta.persistence.cache.storeMode",    CacheStoreMode.REFRESH);
+
+            Proyecto p = q.getSingleResult();
+
+            // Refrescar el root por si el proveedor guarda una versión previa
+            em.refresh(p);
+
+            // Asegurar inicialización y ordenar actividades para el Excel
+            if (p.getActividades() != null) {
+                for (Actividad a : p.getActividades()) {
+                    if (a != null) {
+                        // tocar algunos campos simples (inicializa la entidad)
+                        a.getDescripcion();
+                        a.getEstado();
+                    }
+                }
+                p.getActividades().sort((x, y) -> {
+                    Integer ox = x.getOrdenEjecucion() == null ? Integer.MAX_VALUE : x.getOrdenEjecucion();
+                    Integer oy = y.getOrdenEjecucion() == null ? Integer.MAX_VALUE : y.getOrdenEjecucion();
+                    int cmp = ox.compareTo(oy);
+                    if (cmp != 0) return cmp;
+                    Date dx = x.getFechaInicioPlanificada();
+                    Date dy = y.getFechaInicioPlanificada();
+                    if (dx == null && dy == null) return 0;
+                    if (dx == null) return 1;
+                    if (dy == null) return -1;
+                    return dx.compareTo(dy);
+                });
+            }
+
+            return Optional.of(p);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
     public List<Proyecto> obtenerTodos() {
-        return em.createNamedQuery("Proyecto.findAll", Proyecto.class)
-                .getResultList();
+        return em.createNamedQuery("Proyecto.findAll", Proyecto.class).getResultList();
     }
 
     public List<Proyecto> buscarPorEstado(String estado) {
@@ -54,11 +105,10 @@ public class ProyectoDao {
     }
 
     public List<Proyecto> buscarActivos() {
-        return em.createNamedQuery("Proyecto.findActivos", Proyecto.class)
-                .getResultList();
+        return em.createNamedQuery("Proyecto.findActivos", Proyecto.class).getResultList();
     }
 
-    // Implementación con Stream usando la Query de JPA
+    // Streams
     public Stream<Proyecto> buscarConStreams(String filtro) {
         TypedQuery<Proyecto> query = em.createNamedQuery("Proyecto.buscar", Proyecto.class);
         query.setParameter("filtro", "%" + filtro + "%");
@@ -77,8 +127,7 @@ public class ProyectoDao {
     }
 
     public List<Proyecto> buscarPorRangoFechas(java.util.Date fechaInicio, java.util.Date fechaFin) {
-        String jpql = "SELECT p FROM Proyecto p WHERE " +
-                     "p.fechaInicioPlanificada BETWEEN :fechaInicio AND :fechaFin";
+        String jpql = "SELECT p FROM Proyecto p WHERE p.fechaInicioPlanificada BETWEEN :fechaInicio AND :fechaFin";
         return em.createQuery(jpql, Proyecto.class)
                 .setParameter("fechaInicio", fechaInicio)
                 .setParameter("fechaFin", fechaFin)
@@ -94,13 +143,11 @@ public class ProyectoDao {
 
     public Double promedioAvance() {
         String jpql = "SELECT AVG(p.porcentajeAvance) FROM Proyecto p WHERE p.estado IN ('EN_CURSO', 'FINALIZADO')";
-        return em.createQuery(jpql, Double.class)
-                .getSingleResult();
+        return em.createQuery(jpql, Double.class).getSingleResult();
     }
 
     public List<Proyecto> proyectosAtrasados() {
         String jpql = "SELECT p FROM Proyecto p WHERE p.fechaFinalPlanificada < CURRENT_DATE AND p.estado IN ('PLANIFICADO', 'EN_CURSO')";
-        return em.createQuery(jpql, Proyecto.class)
-                .getResultList();
+        return em.createQuery(jpql, Proyecto.class).getResultList();
     }
 }
