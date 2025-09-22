@@ -33,6 +33,6 @@ public final class Constants {
     public static final int MIN_PASSWORD_LENGTH = 3;
     
     private Constants() {
-        // Utility class
+        
     }
 }
