@@ -16,7 +16,7 @@
   </properties>
 
   <dependencies>
-    <!-- APIs Jakarta EE (Payara las provee en runtime) -->
+  
     <dependency>
       <groupId>jakarta.platform</groupId>
       <artifactId>jakarta.jakartaee-api</artifactId>
@@ -30,21 +30,21 @@
 </dependency>
 
 
-    <!-- Implementación SOAP (Metro) incluida en el WAR -->
+  
     <dependency>
       <groupId>com.sun.xml.ws</groupId>
       <artifactId>jaxws-rt</artifactId>
       <version>${metro.version}</version>
     </dependency>
     
-    <!-- Apache POI para Excel -->
+   
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
       <version>5.2.4</version>
     </dependency>
 
-    <!-- JavaMail para correos (opcional) -->
+    
     <dependency>
       <groupId>com.sun.mail</groupId>
       <artifactId>jakarta.mail</artifactId>
