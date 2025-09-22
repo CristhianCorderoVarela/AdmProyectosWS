@@ -12,6 +12,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 
+// Esto sirve para autenticar administradores via SOAP
 @Stateless
 @WebService(serviceName = "AuthService")
 public class AuthWS {
@@ -19,9 +20,11 @@ public class AuthWS {
     @PersistenceContext(unitName = "ProyectoPU")
     private EntityManager em;
 
+    // Esto confirma que el servicio esta activo
     @WebMethod
     public String ping() { return "AuthService OK"; }
 
+    // Esto hace login con usuario y contraseña
     @WebMethod
     public RespuestaLogin login(
             @WebParam(name = "username") String username,
@@ -35,14 +38,14 @@ public class AuthWS {
                 .setParameter("usr", username == null ? null : username.trim())
                 .getSingleResult();
 
-            String stored = a.getPasswordPlain(); // puede ser hash o texto plano
+            String stored = a.getPasswordPlain(); 
             String plain  = password == null ? null : password.trim();
 
             if (!PasswordUtil.checkFlexible(plain, stored)) {
                 return new RespuestaLogin(false, "Usuario o contraseña incorrectos", null);
             }
 
-            // Migración transparente: si estaba en claro, lo reescribimos como hash
+            
             if (!PasswordUtil.isBcryptHash(stored)) {
                 a.setPasswordPlain(PasswordUtil.hash(plain));
                 em.merge(a);
@@ -52,7 +55,7 @@ public class AuthWS {
                 a.getId(), a.getNombre(), a.getApellidos(),
                 a.getCedula(), a.getCorreo(), a.getUsuario(), a.getEstado()
             );
-            dto.setPasswordPlain(null); // nunca exponer
+            dto.setPasswordPlain(null); 
 
             return new RespuestaLogin(true, "Autenticación exitosa", dto);
 

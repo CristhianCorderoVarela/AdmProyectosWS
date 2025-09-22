@@ -8,6 +8,7 @@ import jakarta.jws.WebMethod;
 import jakarta.jws.WebParam;
 import jakarta.jws.WebService;
 
+// Esto expone un servicio SOAP para reportes en Excel
 @Stateless
 @WebService(name = "ReporteWS", serviceName = "ReporteWSService")
 public class ReporteWS {
@@ -15,11 +16,13 @@ public class ReporteWS {
     @EJB
     private ExcelService excelService;
 
+    // Esto sirve para confirmar que el servicio está activo
     @WebMethod(operationName = "verificarEstadoServicio")
     public RespuestaExcel verificarEstadoServicio() {
         return new RespuestaExcel(true, "ReporteWS en ejecución (verificado OK)");
     }
 
+    // Esto genera el Excel del cronograma para un proyecto
     @WebMethod(operationName = "generarCronogramaProyecto")
     public RespuestaExcel generarCronogramaProyecto(
             @WebParam(name = "proyectoId") Long proyectoId) {
@@ -29,10 +32,10 @@ public class ReporteWS {
         }
 
         try {
-            // Delegar al servicio real que construye el Excel
+            
             return excelService.generarCronogramaProyecto(proyectoId);
         } catch (Exception e) {
-            // Captura cualquier error para no devolver mensaje vacío al cliente
+           
             e.printStackTrace();
             return new RespuestaExcel(false, "Error interno al generar Excel: " + e.getMessage());
         }
