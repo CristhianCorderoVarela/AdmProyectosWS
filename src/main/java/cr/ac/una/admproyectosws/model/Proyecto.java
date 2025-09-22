@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
+// Esto representa un proyecto dentro del sistema
 @Entity
 @Table(name = "PROYECTOS")
 @NamedQueries({
@@ -77,7 +78,7 @@ public class Proyecto {
     @Column(name = "FECHA_MODIFICACION")
     private Date fechaModificacion;
 
-    // Relaciones
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CREADO_POR")
     private Administrador creadoPor;
@@ -90,14 +91,14 @@ public class Proyecto {
     @OrderBy("fechaSeguimiento DESC")
     private List<SeguimientoProyecto> seguimientos;
 
-    // Constructores
+    // Esto define valores por defecto
     public Proyecto() {
         this.fechaCreacion = new Date();
         this.fechaModificacion = new Date();
         this.porcentajeAvance = 0;
     }
 
-    // Métodos de ciclo de vida
+    // Esto actualiza la fecha de modificacion al cambiar algo
     @PreUpdate
     public void preUpdate() {
         this.fechaModificacion = new Date();

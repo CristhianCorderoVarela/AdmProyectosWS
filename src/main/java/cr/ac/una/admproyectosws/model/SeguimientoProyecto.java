@@ -3,6 +3,7 @@ package cr.ac.una.admproyectosws.model;
 import jakarta.persistence.*;
 import java.util.Date;
 
+// Esto representa un seguimiento del proyecto
 @Entity
 @Table(name = "SEGUIMIENTO_PROYECTO")
 @NamedQueries({
@@ -34,7 +35,7 @@ public class SeguimientoProyecto {
     @Column(name = "FECHA_CREACION")
     private Date fechaCreacion;
 
-    // Relaciones
+   
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROYECTO_ID", nullable = false)
     private Proyecto proyecto;
@@ -43,11 +44,11 @@ public class SeguimientoProyecto {
     @JoinColumn(name = "CREADO_POR", nullable = false)
     private Administrador creadoPor;
 
-    // Constructores
+  // Esto pone la fecha de creación por defecto
     public SeguimientoProyecto() {
         this.fechaCreacion = new Date();
     }
-
+// Esto permite crear la instancia con datos
     public SeguimientoProyecto(Proyecto proyecto, Date fechaSeguimiento, String observaciones, 
                               Integer porcentajeAvance, Administrador creadoPor) {
         this();

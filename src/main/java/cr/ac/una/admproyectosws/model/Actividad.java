@@ -3,6 +3,7 @@ package cr.ac.una.admproyectosws.model;
 import jakarta.persistence.*;
 import java.util.Date;
 
+// Esto representa una actividad dentro de un proyecto
 @Entity
 @Table(name = "ACTIVIDADES")
 @NamedQueries({
@@ -19,24 +20,29 @@ public class Actividad {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ACTIVIDAD_SEQ")
     @SequenceGenerator(
         name = "ACTIVIDAD_SEQ",
-        sequenceName = "SEQ_ACTIVIDAD_ID", // nombre exacto de la secuencia en tu BD
+        sequenceName = "SEQ_ACTIVIDAD_ID", 
         allocationSize = 1
     )
     @Column(name = "ID")
     private Long id;
     
+    // Esto describe que se hará
     @Column(name = "DESCRIPCION", nullable = false, length = 500)
     private String descripcion;
     
+    // Esto guarda quien se encarga
     @Column(name = "ENCARGADO_NOMBRE", nullable = false, length = 120)
     private String encargadoNombre;
     
+    // Esto guarda el correo del encargado
     @Column(name = "ENCARGADO_CORREO", nullable = false, length = 120)
     private String encargadoCorreo;
     
+    // Esto indica en que estado va
     @Column(name = "ESTADO", nullable = false, length = 20)
     private String estado;
     
+    // Esto marca fechas previstas y reales
     @Temporal(TemporalType.DATE)
     @Column(name = "FECHA_INICIO_PLANIFICADA", nullable = false)
     private Date fechaInicioPlanificada;
@@ -53,9 +59,11 @@ public class Actividad {
     @Column(name = "FECHA_FINAL_REAL")
     private Date fechaFinalReal;
     
+    // Esto define el orden en que se ejecuta
     @Column(name = "ORDEN_EJECUCION", nullable = false)
     private Integer ordenEjecucion;
     
+    // Esto registra cuando se creó y se modificó
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "FECHA_CREACION")
     private Date fechaCreacion;
@@ -64,18 +72,18 @@ public class Actividad {
     @Column(name = "FECHA_MODIFICACION")
     private Date fechaModificacion;
 
-    // Relaciones
+     // Esto conecta la actividad con su proyecto
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PROYECTO_ID", nullable = false)
     private Proyecto proyecto;
 
-    // Constructores
+   // Esto inicia las fechas al crear la actividad
     public Actividad() {
         this.fechaCreacion = new Date();
         this.fechaModificacion = new Date();
     }
 
-    // Métodos de ciclo de vida
+    // Esto actualiza la fecha al modificar la actividad
     @PreUpdate
     public void preUpdate() {
         this.fechaModificacion = new Date();

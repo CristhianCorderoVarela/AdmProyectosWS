@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
+// Esto representa a quien administra el sistema
 @Entity
 @Table(name = "ADMINISTRADORES",
        uniqueConstraints = {
@@ -11,6 +12,7 @@ import java.util.List;
          @UniqueConstraint(columnNames = "CORREO"),
          @UniqueConstraint(columnNames = "CEDULA")
        })
+// Esto deja listas consultas rapidas para buscar administradores
 @NamedQueries({
     @NamedQuery(name = "Administrador.findAll", 
                 query = "SELECT a FROM Administrador a"),
@@ -21,6 +23,8 @@ import java.util.List;
     @NamedQuery(name = "Administrador.login", 
                 query = "SELECT a FROM Administrador a WHERE a.usuario = :usuario AND a.passwordPlain = :password AND a.estado = 'ACTIVO'")
 })
+
+
 public class Administrador {
     
     @Id
@@ -57,16 +61,17 @@ public class Administrador {
     @Column(name = "FECHA_MODIFICACION")
     private Date fechaModificacion;
 
-    // === Relaciones ===
+    
     @OneToMany(mappedBy = "creadoPor", fetch = FetchType.LAZY)
     private List<Proyecto> proyectosCreados;
     
     @OneToMany(mappedBy = "creadoPor", fetch = FetchType.LAZY)
     private List<SeguimientoProyecto> seguimientosCreados;
 
-    // === Constructores ===
+     // Esto crea un administrador vacio
     public Administrador() {}
 
+    // Esto permite crear uno con datos basicos.
     public Administrador(String nombre, String apellidos, String cedula, String correo, 
                          String usuario, String passwordPlain, String estado) {
         this.nombre = nombre;
@@ -78,7 +83,7 @@ public class Administrador {
         this.estado = estado;
     }
 
-    // === Ciclo de vida ===
+    // Esto fija fechas al guardarse por primera vez
     @PrePersist
     protected void prePersist() {
         Date now = new Date();
@@ -86,12 +91,13 @@ public class Administrador {
         if (this.fechaModificacion == null) this.fechaModificacion = now;
     }
 
+    // Esto actualiza la fecha al modificarse
     @PreUpdate
     protected void preUpdate() {
         this.fechaModificacion = new Date();
     }
 
-    // === Getters y Setters ===
+    //Getters y Setters 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
