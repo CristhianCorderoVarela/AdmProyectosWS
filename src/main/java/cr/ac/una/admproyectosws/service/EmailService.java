@@ -30,6 +30,18 @@ import java.util.stream.Collectors;
 @Stateless
 public class EmailService {
 
+    // Identidad de marca
+    private static final String BRAND_NAME  = "Projex";
+    private static final String BRAND_COLOR = "#0ea5e9"; // celeste corporativo
+    private static final String BRAND_ACCENT = "#0369a1"; // más oscuro para header
+
+    // Colores por evento (cada uno diferente)
+    private static final String COLOR_PROYECTO_CREADO          = BRAND_ACCENT; // celeste (como ya estaba)
+    private static final String COLOR_PROYECTO_CAMBIO_ESTADO   = "#16a34a";    // verde
+    private static final String COLOR_ACTIVIDAD_CREADA         = "#f59e0b";    // ámbar
+    private static final String COLOR_ACTIVIDAD_CAMBIO_ESTADO  = "#9333ea";    // morado
+    private static final String COLOR_SEGUIMIENTO              = "#6366f1";    // índigo
+
     @Asynchronous
     public void notificarCreacionProyecto(Proyecto proyecto) {
         try {
@@ -62,11 +74,12 @@ public class EmailService {
             e.printStackTrace();
         }
     }
+
     @Asynchronous
     public void notificarCambioEstadoProyecto(Proyecto proyecto, String estadoAnterior) {
         try {
             System.out.println("[EmailService] Iniciando notificación de cambio de estado");
-            
+
             String subject = String.format(
                     "Cambio de Estado - Proyecto: %s [%s → %s]",
                     val(proyecto.getNombre()),
@@ -83,7 +96,7 @@ public class EmailService {
 
             enviarCorreoHtml(destinatarios, subject, htmlContent);
             System.out.println("[EmailService] Notificación de cambio de estado completada");
-            
+
         } catch (Exception e) {
             System.err.println("[EmailService] ERROR en notificarCambioEstadoProyecto: " + e.getMessage());
             e.printStackTrace();
@@ -94,14 +107,14 @@ public class EmailService {
     public void notificarCreacionActividad(Actividad actividad) {
         try {
             System.out.println("[EmailService] Iniciando notificación de creación de actividad: " + actividad.getDescripcion());
-            
+
             String subject = "Nueva Actividad Asignada: " + val(actividad.getDescripcion());
             String htmlContent = construirHtmlActividad(actividad, "asignada");
 
             System.out.println("[EmailService] Enviando a: " + actividad.getEncargadoCorreo());
             enviarCorreoHtml(Arrays.asList(actividad.getEncargadoCorreo()), subject, htmlContent);
             System.out.println("[EmailService] Notificación de creación de actividad completada");
-            
+
         } catch (Exception e) {
             System.err.println("[EmailService] ERROR en notificarCreacionActividad: " + e.getMessage());
             e.printStackTrace();
@@ -112,7 +125,7 @@ public class EmailService {
     public void notificarCambioEstadoActividad(Actividad actividad, String estadoAnterior) {
         try {
             System.out.println("[EmailService] Iniciando notificación de cambio de estado de actividad");
-            
+
             String subject = String.format(
                     "Cambio de Estado - Actividad: %s [%s → %s]",
                     val(actividad.getDescripcion()),
@@ -123,7 +136,7 @@ public class EmailService {
 
             enviarCorreoHtml(Arrays.asList(actividad.getEncargadoCorreo()), subject, htmlContent);
             System.out.println("[EmailService] Notificación de cambio de estado de actividad completada");
-            
+
         } catch (Exception e) {
             System.err.println("[EmailService] ERROR en notificarCambioEstadoActividad: " + e.getMessage());
             e.printStackTrace();
@@ -134,7 +147,7 @@ public class EmailService {
     public void notificarSeguimientoProyecto(SeguimientoProyecto seguimiento) {
         try {
             System.out.println("[EmailService] Iniciando notificación de seguimiento");
-            
+
             Proyecto proyecto = seguimiento.getProyecto();
             String subject = "Nuevo Seguimiento - Proyecto: " + val(proyecto.getNombre());
             String htmlContent = construirHtmlSeguimiento(seguimiento);
@@ -148,7 +161,7 @@ public class EmailService {
             System.out.println("[EmailService] Destinatarios: " + destinatarios);
             enviarCorreoHtml(destinatarios, subject, htmlContent);
             System.out.println("[EmailService] Notificación de seguimiento completada");
-            
+
         } catch (Exception e) {
             System.err.println("[EmailService] ERROR en notificarSeguimientoProyecto: " + e.getMessage());
             e.printStackTrace();
@@ -158,7 +171,7 @@ public class EmailService {
     private void enviarCorreoHtml(List<String> destinatarios, String subject, String htmlContent) {
         try {
             System.out.println("[EmailService] Iniciando envío de correo: " + subject);
-            
+
             // CORREGIDO: Usar collect(Collectors.toList()) en lugar de toList()
             List<String> limpios = destinatarios == null ? Arrays.asList()
                     : destinatarios.stream()
@@ -167,12 +180,12 @@ public class EmailService {
                     .filter(s -> !s.isEmpty())
                     .distinct()
                     .collect(Collectors.toList()); // ESTE ERA EL PROBLEMA
-            
+
             if (limpios.isEmpty()) {
                 System.out.println("[EmailService] No hay destinatarios válidos. Se omite el envío.");
                 return;
             }
-            
+
             System.out.println("[EmailService] Destinatarios válidos: " + limpios);
 
             // Cargar configuración
@@ -203,14 +216,14 @@ public class EmailService {
             // Crear mensaje
             MimeMessage msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(user));
-            
+
             // Convertir destinatarios - CORREGIDO
             InternetAddress[] addresses = limpios.stream()
                     .map(this::createAddress)
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList())  // CAMBIADO DE toArray() directo
                     .toArray(new InternetAddress[0]);
-                    
+
             msg.setRecipients(Message.RecipientType.TO, addresses);
             msg.setSubject(subject, StandardCharsets.UTF_8.name());
 
@@ -245,158 +258,415 @@ public class EmailService {
         }
     }
 
-    private String construirHtmlProyecto(Proyecto proyecto, String accion) {
-        return String.format("""
-        <html>
-          <body style="font-family: Arial, sans-serif">
-            <h2 style="color:#2E86C1">Nuevo proyecto creado</h2>
-            <p>Se ha registrado un nuevo proyecto en el sistema.</p>
-
-            <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse">
-              <tr><th align="left">Proyecto</th><td>%s</td></tr>
-              <tr><th align="left">Patrocinador</th><td>%s</td></tr>
-              <tr><th align="left">Líder usuario</th><td>%s</td></tr>
-              <tr><th align="left">Líder técnico</th><td>%s</td></tr>
-              <tr><th align="left">Estado inicial</th><td>%s</td></tr>
-              <tr><th align="left">Inicio planificado</th><td>%s</td></tr>
-              <tr><th align="left">Fin planificado</th><td>%s</td></tr>
-            </table>
-
-            <p>— Equipo AdmProyectos<br>
-            <small>Este mensaje fue generado automáticamente.</small></p>
-          </body>
-        </html>
-        """,
-                val(proyecto.getNombre()),
-                val(proyecto.getPatrocinadorNombre()),
-                val(proyecto.getLiderUsuarioNombre()),
-                val(proyecto.getLiderTecnicoNombre()),
-                val(proyecto.getEstado()),
-                formatearFecha(proyecto.getFechaInicioPlanificada()),
-                formatearFecha(proyecto.getFechaFinalPlanificada())
-        );
-    }
-    private String construirHtmlCambioEstado(Proyecto proyecto, String estadoAnterior) {
+    // ========= Wrapper base (celeste por defecto, ya usado por "Proyecto creado") =========
+    private String wrapEmail(String preheader, String title, String contentHtml) {
         return """
+        <!doctype html>
         <html>
-          <body style="font-family: Arial, sans-serif; color:#333;">
-            <h2 style="color:#117A65; margin-bottom:6px;">Actualización de estado del proyecto</h2>
-            <p>El proyecto <b>%s</b> ha cambiado de estado.</p>
+        <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>%s</title>
+          <style>
+            @media only screen and (max-width: 620px) {
+              .container { width: 100%% !important; padding: 0 12px !important; }
+              .content { padding: 16px !important; }
+              h1 { font-size: 20px !important; }
+            }
+          </style>
+        </head>
+        <body style="margin:0; padding:0; background:#f4f6f8;">
+          <span style="display:none; color:transparent; visibility:hidden; opacity:0; height:0; width:0; overflow:hidden;">
+            %s
+          </span>
 
-            <ul>
-              <li><b>Estado anterior:</b> %s</li>
-              <li><b>Nuevo estado:</b> %s</li>
-              <li><b>Porcentaje de avance:</b> %s</li>
-              <li><b>Fecha del cambio:</b> %s</li>
-            </ul>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%%" style="background:#f4f6f8;">
+            <tr>
+              <td align="center" style="padding:24px 12px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container"
+                       style="width:600px; max-width:100%%; background:#ffffff; border-radius:10px; box-shadow:0 1px 6px rgba(0,0,0,.06); overflow:hidden;">
+                  <!-- Header -->
+                  <tr>
+                    <td align="left" style="background:%s; padding:16px 24px;">
+                      <table width="100%%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                          <td align="left" style="color:#fff; font:700 16px/1.2 Arial,Helvetica,sans-serif;">%s</td>
+                          <td align="right" style="color:#dbeafe; font:400 12px/1.2 Arial,Helvetica,sans-serif;">Notificación automática</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
 
-            <p>— Equipo AdmProyectos<br>
-            <small>Este mensaje fue generado automáticamente.</small></p>
-          </body>
+                  <!-- Title + Body -->
+                  <tr>
+                    <td class="content" style="padding:24px;">
+                      <h1 style="margin:0 0 12px; font:700 22px/1.3 Arial,Helvetica,sans-serif; color:#0f172a;">
+                        %s
+                      </h1>
+
+                      %s
+
+                      <p style="margin:24px 0 0; font:12px/1.6 Arial,Helvetica,sans-serif; color:#64748b;">
+                        — Equipo %s<br>
+                        <span style="color:#94a3b8;">Este mensaje fue generado automáticamente.</span>
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+                <div style="padding-top:12px; color:#94a3b8; font:12px Arial,Helvetica,sans-serif;">
+                  © %s %s
+                </div>
+              </td>
+            </tr>
+          </table>
+        </body>
         </html>
         """.formatted(
-                val(proyecto.getNombre()),
-                val(estadoAnterior),
-                val(proyecto.getEstado()),
-                proyecto.getPorcentajeAvance() == null ? "—" : proyecto.getPorcentajeAvance() + "%",
-                formatearFecha(new Date())
+            escape(title),                 // <title>
+            escape(preheader),             // preheader
+            BRAND_ACCENT,                  // header color (celeste por defecto)
+            BRAND_NAME,                    // brand
+            escape(title),                 // H1
+            contentHtml,                   // cuerpo
+            BRAND_NAME,                    // firma
+            new java.text.SimpleDateFormat("yyyy").format(new java.util.Date()),
+            BRAND_NAME
         );
     }
-    
-    
-    
+
+    // Variante con color personalizado para el header
+    private String wrapEmailWithColor(String preheader, String title, String contentHtml, String headerColor) {
+        return """
+        <!doctype html>
+        <html>
+        <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>%s</title>
+          <style>
+            @media only screen and (max-width: 620px) {
+              .container { width: 100%% !important; padding: 0 12px !important; }
+              .content { padding: 16px !important; }
+              h1 { font-size: 20px !important; }
+            }
+          </style>
+        </head>
+        <body style="margin:0; padding:0; background:#f4f6f8;">
+          <span style="display:none; color:transparent; visibility:hidden; opacity:0; height:0; width:0; overflow:hidden;">
+            %s
+          </span>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%%" style="background:#f4f6f8;">
+            <tr>
+              <td align="center" style="padding:24px 12px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="container"
+                       style="width:600px; max-width:100%%; background:#ffffff; border-radius:10px; box-shadow:0 1px 6px rgba(0,0,0,.06); overflow:hidden;">
+                  <!-- Header -->
+                  <tr>
+                    <td align="left" style="background:%s; padding:16px 24px;">
+                      <table width="100%%" cellpadding="0" cellspacing="0" role="presentation">
+                        <tr>
+                          <td align="left" style="color:#fff; font:700 16px/1.2 Arial,Helvetica,sans-serif;">%s</td>
+                          <td align="right" style="color:#e5e7eb; font:400 12px/1.2 Arial,Helvetica,sans-serif;">Notificación automática</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+
+                  <!-- Title + Body -->
+                  <tr>
+                    <td class="content" style="padding:24px;">
+                      <h1 style="margin:0 0 12px; font:700 22px/1.3 Arial,Helvetica,sans-serif; color:#0f172a;">
+                        %s
+                      </h1>
+
+                      %s
+
+                      <p style="margin:24px 0 0; font:12px/1.6 Arial,Helvetica,sans-serif; color:#64748b;">
+                        — Equipo %s<br>
+                        <span style="color:#94a3b8;">Este mensaje fue generado automáticamente.</span>
+                      </p>
+                    </td>
+                  </tr>
+
+                </table>
+                <div style="padding-top:12px; color:#94a3b8; font:12px Arial,Helvetica,sans-serif;">
+                  © %s %s
+                </div>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        """.formatted(
+            escape(title),
+            escape(preheader),
+            headerColor,
+            BRAND_NAME,
+            escape(title),
+            contentHtml,
+            BRAND_NAME,
+            new java.text.SimpleDateFormat("yyyy").format(new java.util.Date()),
+            BRAND_NAME
+        );
+    }
+
+    // Helper para escapar caracteres
+    private String escape(String s) {
+        if (s == null) return "";
+        return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;");
+    }
+
+    // ===== Diseños por evento =====
+
+    // 1) PROYECTO CREADO (celeste)
+    private String construirHtmlProyecto(Proyecto proyecto, String accion) {
+        String nombreProyecto = val(proyecto.getNombre());
+
+        String cuerpo = """
+          <p style="margin:0 0 12px; font:14px/1.7 Arial,Helvetica,sans-serif; color:#334155;">
+            ¡Buenas! Te contamos que en <b>%s</b> se registró un nuevo proyecto.
+          </p>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%%"
+                 style="border-collapse:collapse; font:14px Arial,Helvetica,sans-serif; color:#0f172a;">
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#f8fafc; width:40%%;"><b>Proyecto</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#f8fafc;"><b>Patrocinador</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#f8fafc;"><b>Líder usuario</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#f8fafc;"><b>Líder técnico</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#f8fafc;"><b>Estado inicial</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#f8fafc;"><b>Inicio planificado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#f8fafc;"><b>Fin planificado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+          </table>
+
+          <p style="margin:16px 0 0; font:13px/1.7 Arial,Helvetica,sans-serif; color:#475569;">
+            Si no esperabas este correo, puedes ignorarlo. Para dudas, responde a este mensaje.
+          </p>
+        """.formatted(
+            BRAND_NAME,
+            escape(nombreProyecto),
+            escape(val(proyecto.getPatrocinadorNombre())),
+            escape(val(proyecto.getLiderUsuarioNombre())),
+            escape(val(proyecto.getLiderTecnicoNombre())),
+            escape(val(proyecto.getEstado())),
+            escape(formatearFecha(proyecto.getFechaInicioPlanificada())),
+            escape(formatearFecha(proyecto.getFechaFinalPlanificada()))
+        );
+
+        String titulo = "Nuevo proyecto creado";
+        String preheader = "Se registró el proyecto " + nombreProyecto + " en " + BRAND_NAME;
+        return wrapEmail(preheader, titulo, cuerpo); // celeste por defecto
+    }
+
+    // 2) CAMBIO DE ESTADO DE PROYECTO (verde)
+    private String construirHtmlCambioEstado(Proyecto proyecto, String estadoAnterior) {
+        String nombreProyecto = val(proyecto.getNombre());
+        String nuevoEstado = val(proyecto.getEstado());
+        String avance = (proyecto.getPorcentajeAvance() == null) ? "—" : (proyecto.getPorcentajeAvance() + "%");
+
+        String cuerpo = """
+          <p style="margin:0 0 12px; font:14px/1.7 Arial,Helvetica,sans-serif; color:#334155;">
+            El proyecto <b>%s</b> cambió su estado.
+          </p>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%%"
+                 style="border-collapse:collapse; font:14px Arial,Helvetica,sans-serif; color:#0f172a;">
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#ecfdf5; width:40%%;"><b>Estado anterior</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#ecfdf5;"><b>Nuevo estado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#ecfdf5;"><b>Avance</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#ecfdf5;"><b>Fecha del cambio</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+          </table>
+        """.formatted(
+            escape(nombreProyecto),
+            escape(val(estadoAnterior)),
+            escape(nuevoEstado),
+            escape(avance),
+            escape(formatearFecha(new Date()))
+        );
+
+        String titulo = "Cambio de estado del proyecto";
+        String preheader = "El proyecto " + nombreProyecto + " cambió a " + nuevoEstado;
+        return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_PROYECTO_CAMBIO_ESTADO);
+    }
+
+    // 3) ACTIVIDAD CREADA (ámbar)
     private String construirHtmlActividad(Actividad actividad, String accion) {
-        return String.format("""
-        <html>
-          <body style="font-family: Arial, sans-serif">
-            <h2 style="color:#AF601A">Nueva actividad registrada</h2>
-            <p>Se ha agregado una actividad al proyecto <b>%s</b>.</p>
+        String proyectoNombre = val(actividad.getProyecto() != null ? actividad.getProyecto().getNombre() : null);
 
-            <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse">
-              <tr><th align="left">Descripción</th><td>%s</td></tr>
-              <tr><th align="left">Encargado</th><td>%s</td></tr>
-              <tr><th align="left">Estado</th><td>%s</td></tr>
-              <tr><th align="left">Inicio planificado</th><td>%s</td></tr>
-              <tr><th align="left">Fin planificado</th><td>%s</td></tr>
-              <tr><th align="left">Orden de ejecución</th><td>%s</td></tr>
-            </table>
+        String cuerpo = """
+          <p style="margin:0 0 12px; font:14px/1.7 Arial,Helvetica,sans-serif; color:#334155;">
+            Se agregó una nueva actividad al proyecto <b>%s</b>.
+          </p>
 
-            <p>— Equipo AdmProyectos<br>
-            <small>Este mensaje fue generado automáticamente.</small></p>
-          </body>
-        </html>
-        """,
-                val(actividad.getProyecto() != null ? actividad.getProyecto().getNombre() : null),
-                val(actividad.getDescripcion()),
-                val(actividad.getEncargadoNombre()),
-                val(actividad.getEstado()),
-                formatearFecha(actividad.getFechaInicioPlanificada()),
-                formatearFecha(actividad.getFechaFinalPlanificada()),
-                val(actividad.getOrdenEjecucion())
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%%"
+                 style="border-collapse:collapse; font:14px Arial,Helvetica,sans-serif; color:#0f172a;">
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#fffbeb; width:40%%;"><b>Descripción</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#fffbeb;"><b>Encargado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#fffbeb;"><b>Estado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#fffbeb;"><b>Inicio planificado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#fffbeb;"><b>Fin planificado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#fffbeb;"><b>Orden de ejecución</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+          </table>
+        """.formatted(
+            escape(proyectoNombre),
+            escape(val(actividad.getDescripcion())),
+            escape(val(actividad.getEncargadoNombre())),
+            escape(val(actividad.getEstado())),
+            escape(formatearFecha(actividad.getFechaInicioPlanificada())),
+            escape(formatearFecha(actividad.getFechaFinalPlanificada())),
+            escape(val(actividad.getOrdenEjecucion()))
         );
+
+        String titulo = "Nueva actividad registrada";
+        String preheader = "Se registró una nueva actividad en " + proyectoNombre;
+        return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_ACTIVIDAD_CREADA);
     }
 
+    // 4) CAMBIO DE ESTADO DE ACTIVIDAD (morado)
     private String construirHtmlCambioEstadoActividad(Actividad actividad, String estadoAnterior) {
-        return String.format("""
-        <html>
-          <body style="font-family: Arial, sans-serif">
-            <h2 style="color:#6C3483">Estado de actividad actualizado</h2>
-            <p>La actividad <b>%s</b> en el proyecto <b>%s</b> ha cambiado de estado.</p>
+        String proyectoNombre = val(actividad.getProyecto() != null ? actividad.getProyecto().getNombre() : null);
 
-            <ul>
-              <li><b>Estado anterior:</b> %s</li>
-              <li><b>Nuevo estado:</b> %s</li>
-              <li><b>Fecha inicio real:</b> %s</li>
-              <li><b>Fecha fin real:</b> %s</li>
-              <li><b>Orden de ejecución:</b> %s</li>
-            </ul>
+        String cuerpo = """
+          <p style="margin:0 0 12px; font:14px/1.7 Arial,Helvetica,sans-serif; color:#334155;">
+            La actividad <b>%s</b> del proyecto <b>%s</b> cambió su estado.
+          </p>
 
-            <p>— Equipo AdmProyectos<br>
-            <small>Este mensaje fue generado automáticamente.</small></p>
-          </body>
-        </html>
-        """,
-                val(actividad.getDescripcion()),
-                val(actividad.getProyecto() != null ? actividad.getProyecto().getNombre() : null),
-                val(estadoAnterior),
-                val(actividad.getEstado()),
-                formatearFecha(actividad.getFechaInicioReal()),
-                formatearFecha(actividad.getFechaFinalReal()),
-                val(actividad.getOrdenEjecucion())
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%%"
+                 style="border-collapse:collapse; font:14px Arial,Helvetica,sans-serif; color:#0f172a;">
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#faf5ff; width:40%%;"><b>Estado anterior</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#faf5ff;"><b>Nuevo estado</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#faf5ff;"><b>Inicio real</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#faf5ff;"><b>Fin real</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#faf5ff;"><b>Orden de ejecución</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+          </table>
+        """.formatted(
+            escape(val(actividad.getDescripcion())),
+            escape(proyectoNombre),
+            escape(val(estadoAnterior)),
+            escape(val(actividad.getEstado())),
+            escape(formatearFecha(actividad.getFechaInicioReal())),
+            escape(formatearFecha(actividad.getFechaFinalReal())),
+            escape(val(actividad.getOrdenEjecucion()))
         );
+
+        String titulo = "Estado de actividad actualizado";
+        String preheader = "La actividad " + val(actividad.getDescripcion()) + " cambió su estado";
+        return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_ACTIVIDAD_CAMBIO_ESTADO);
     }
 
+    // 5) SEGUIMIENTO (índigo)
     private String construirHtmlSeguimiento(SeguimientoProyecto seguimiento) {
-        return String.format("""
-        <html>
-          <body style="font-family: Arial, sans-serif">
-            <h2 style="color:#2E4053">Nuevo seguimiento agregado</h2>
-            <p>El proyecto <b>%s</b> tiene un nuevo seguimiento:</p>
+        String proyectoNombre = val(seguimiento.getProyecto() != null ? seguimiento.getProyecto().getNombre() : null);
+        String avance = (seguimiento.getPorcentajeAvance() == null) ? "—" : (seguimiento.getPorcentajeAvance() + "%");
+        String registradoPor = (seguimiento.getCreadoPor() == null)
+                ? "—"
+                : (val(seguimiento.getCreadoPor().getNombre()) + " " + val(seguimiento.getCreadoPor().getApellidos()));
 
-            <blockquote style="border-left:3px solid #ccc">
-              "%s"
-            </blockquote>
+        String cuerpo = """
+          <p style="margin:0 0 12px; font:14px/1.7 Arial,Helvetica,sans-serif; color:#334155;">
+            Se agregó un nuevo seguimiento al proyecto <b>%s</b>:
+          </p>
 
-            <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse">
-              <tr><th align="left">Porcentaje de avance</th><td>%s</td></tr>
-              <tr><th align="left">Fecha del seguimiento</th><td>%s</td></tr>
-              <tr><th align="left">Registrado por</th><td>%s</td></tr>
-            </table>
+          <blockquote style="margin:0 0 16px; padding:12px 14px; border-left:3px solid #c7d2fe; background:#eef2ff; color:#1f2937; font:14px Arial,Helvetica,sans-serif;">
+            “%s”
+          </blockquote>
 
-            <p>— Equipo AdmProyectos<br>
-            <small>Este mensaje fue generado automáticamente.</small></p>
-          </body>
-        </html>
-        """,
-                val(seguimiento.getProyecto() != null ? seguimiento.getProyecto().getNombre() : null),
-                val(seguimiento.getObservaciones()),
-                seguimiento.getPorcentajeAvance() == null ? "—" : seguimiento.getPorcentajeAvance() + "%%",
-                formatearFecha(seguimiento.getFechaSeguimiento()),
-                seguimiento.getCreadoPor() == null
-                        ? "—"
-                        : (val(seguimiento.getCreadoPor().getNombre()) + " " + val(seguimiento.getCreadoPor().getApellidos()))
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%%"
+                 style="border-collapse:collapse; font:14px Arial,Helvetica,sans-serif; color:#0f172a;">
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#eef2ff; width:40%%;"><b>Avance</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#eef2ff;"><b>Fecha del seguimiento</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+            <tr>
+              <td style="padding:10px; border:1px solid #e5e7eb; background:#eef2ff;"><b>Registrado por</b></td>
+              <td style="padding:10px; border:1px solid #e5e7eb;">%s</td>
+            </tr>
+          </table>
+        """.formatted(
+            escape(proyectoNombre),
+            escape(val(seguimiento.getObservaciones())),
+            escape(avance),
+            escape(formatearFecha(seguimiento.getFechaSeguimiento())),
+            escape(registradoPor)
         );
+
+        String titulo = "Nuevo seguimiento agregado";
+        String preheader = "Nuevo seguimiento en " + proyectoNombre + " (" + avance + ")";
+        return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_SEGUIMIENTO);
     }
+
+    // ===== Utilidades existentes =====
 
     private Properties cargarMailProperties() {
         System.out.println("[EmailService] Cargando mail.properties...");
