@@ -11,8 +11,10 @@ public class RespuestaLogin {
     private String mensaje;
     private AdministradorDto administrador;
 
+    // Esto crea la respuesta vacía
     public RespuestaLogin() {}
 
+      // Esto crea la respuesta con el resultado, el mensaje y el administrador
     public RespuestaLogin(boolean ok, String mensaje, AdministradorDto administrador) {
         this.ok = ok;
         this.mensaje = mensaje;

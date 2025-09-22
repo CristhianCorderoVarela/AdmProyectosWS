@@ -10,14 +10,17 @@ public class RespuestaGeneral<T> {
     private boolean ok;
     private String mensaje;
     private T data;
-
+    
+ // Esto crea una respuesta vacía
     public RespuestaGeneral() {}
 
+    // Esto crea una respuesta con estado y mensaje
     public RespuestaGeneral(boolean ok, String mensaje) {
         this.ok = ok;
         this.mensaje = mensaje;
     }
-
+    
+// Esto crea una respuesta completa con estado, mensaje y datos
     public RespuestaGeneral(boolean ok, String mensaje, T data) {
         this.ok = ok;
         this.mensaje = mensaje;

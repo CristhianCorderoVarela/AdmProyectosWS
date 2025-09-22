@@ -8,34 +8,34 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlSeeAlso;
 import java.util.List;
 
-/**
- * Respuesta para operaciones que retornan listas.
- * Se define como clase independiente (no hereda del genérico) para evitar
- * problemas de JAXB con campos genéricos y acceso por FIELD.
- */
+
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlSeeAlso({ ProyectoDto.class })
 public class RespuestaGeneralLista<T> {
-
+    
+// Esto indica si la operacion salió bien o no
     private boolean ok;
+    
     private String mensaje;
 
-    // <items><item>...</item></items>
+    
     @XmlElementWrapper(name = "items")
     @XmlElement(name = "item")
     private List<T> data;
-
+    
+// Esto crea la respuesta vacía
     public RespuestaGeneralLista() {
     }
-
+    
+// Esto crea la respuesta completa con estado, mensaje y la lista de datos
     public RespuestaGeneralLista(boolean ok, String mensaje, List<T> data) {
         this.ok = ok;
         this.mensaje = mensaje;
         this.data = data;
     }
 
-    // Getters / Setters
+    // Getters y Setters
     public boolean isOk() {
         return ok;
     }

@@ -33,8 +33,10 @@ public class ProyectoDto {
     private List<ActividadDto> actividades;
     private SeguimientoProyectoDto ultimoSeguimiento;
 
+    //Esto crea un DTO vacio
     public ProyectoDto() {}
 
+    //Esto llena el DTO con la informacion que trae un proyecto
     public ProyectoDto(Proyecto proyecto) {
         if (proyecto != null) {
             this.id = proyecto.getId();
@@ -72,6 +74,7 @@ public class ProyectoDto {
         }
     }
 
+    //Esto convierte el DTO en la entidad Proyecto para guardar o actualizar en la base de datos
     public Proyecto toEntity() {
         Proyecto proyecto = new Proyecto();
         proyecto.setId(this.id);

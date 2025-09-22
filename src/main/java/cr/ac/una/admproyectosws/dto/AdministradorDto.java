@@ -17,12 +17,14 @@ public class AdministradorDto {
     private String correo;
     private String usuario;
     private String estado;
-    private String passwordPlain;          // puede ir null al enviar al cliente
+    private String passwordPlain;         
     private Date fechaCreacion;
     private Date fechaModificacion;
 
+    // Esto crea un DTO vacio
     public AdministradorDto() {}
 
+    // Esto llena el DTO usando una entidad Administrador que ya existe.
     public AdministradorDto(Administrador administrador) {
         if (administrador != null) {
             this.id = administrador.getId();
@@ -32,14 +34,12 @@ public class AdministradorDto {
             this.correo = administrador.getCorreo();
             this.usuario = administrador.getUsuario();
             this.estado = administrador.getEstado();
-            // Si no quieres exponer, no asignes passwordPlain aquí
-            // this.passwordPlain = administrador.getPasswordPlain();
             this.fechaCreacion = administrador.getFechaCreacion();
             this.fechaModificacion = administrador.getFechaModificacion();
         }
     }
 
-    // >>> ARREGLO: implementar correctamente este constructor <<<
+    // Esto arma un DTO con los datos básicos visibles.
     public AdministradorDto(Long id, String nombre, String apellidos, String cedula,
                             String correo, String usuario, String estado) {
         this.id = id;
@@ -49,25 +49,24 @@ public class AdministradorDto {
         this.correo = correo;
         this.usuario = usuario;
         this.estado = estado;
-        this.passwordPlain = null; // nunca exponer al cliente
-        // fechaCreacion / fechaModificacion pueden quedar null aquí
+        this.passwordPlain = null; 
     }
 
-    /** Convierte el DTO en entidad (crear/actualizar). */
-   public Administrador toEntity() {
-    Administrador admin = new Administrador();
-    admin.setId(this.id);
-    admin.setNombre(this.nombre);
-    admin.setApellidos(this.apellidos);
-    admin.setCedula(this.cedula);
-    admin.setCorreo(this.correo);
-    admin.setUsuario(this.usuario);
-    admin.setEstado(this.estado);
-    admin.setPasswordPlain(this.passwordPlain);
+    // Esto convierte el DTO en la entidad para guardar o actualizar en base de datos.
+    public Administrador toEntity() {
+        Administrador admin = new Administrador();
+        admin.setId(this.id);
+        admin.setNombre(this.nombre);
+        admin.setApellidos(this.apellidos);
+        admin.setCedula(this.cedula);
+        admin.setCorreo(this.correo);
+        admin.setUsuario(this.usuario);
+        admin.setEstado(this.estado);
+        admin.setPasswordPlain(this.passwordPlain);
         return admin;
     }
 
-    // Getters / Setters
+    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

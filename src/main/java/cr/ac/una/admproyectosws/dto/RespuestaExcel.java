@@ -1,7 +1,8 @@
-// RespuestaExcel.java
 package cr.ac.una.admproyectosws.dto;
 
 import java.io.Serializable;
+
+//Esto representa la respuesta al generar un archivo excel
 
 public class RespuestaExcel implements Serializable {
     
@@ -12,14 +13,17 @@ public class RespuestaExcel implements Serializable {
     private byte[] archivoExcel;
     private String nombreArchivo;
     
+    //Este crea uan respuesta vacia
     public RespuestaExcel() {
     }
     
+    //Esto crea una respuesta con estado y mensaje
     public RespuestaExcel(Boolean ok, String mensaje) {
         this.ok = ok;
         this.mensaje = mensaje;
     }
     
+    //Esto crea una respuesta completa con el archivo en memoria y su nombre
     public RespuestaExcel(Boolean ok, String mensaje, byte[] archivoExcel, String nombreArchivo) {
         this.ok = ok;
         this.mensaje = mensaje;

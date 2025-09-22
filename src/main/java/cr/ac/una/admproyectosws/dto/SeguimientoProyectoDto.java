@@ -9,6 +9,7 @@ import java.util.Date;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class SeguimientoProyectoDto {
+    // Esto guarda los datos simples de un seguimiento para moverlos y mostrarlos
     private Long id;
     private Date fechaSeguimiento;
     private String observaciones;
@@ -18,9 +19,11 @@ public class SeguimientoProyectoDto {
     private String proyectoNombre;
     private Long creadoPorId;
     private String creadoPorNombre;
-
+    
+// Esto crea un DTO vacío 
     public SeguimientoProyectoDto() {}
 
+    // Esto carga el DTO usando una entidad ya existente, listo para enviar o mostrar
     public SeguimientoProyectoDto(SeguimientoProyecto seguimiento) {
         if (seguimiento != null) {
             this.id = seguimiento.getId();
@@ -41,6 +44,7 @@ public class SeguimientoProyectoDto {
         }
     }
 
+    // Esto convierte el DTO en entidad para poder guardarlo en la base de datos
     public SeguimientoProyecto toEntity() {
         SeguimientoProyecto seguimiento = new SeguimientoProyecto();
         seguimiento.setId(this.id);

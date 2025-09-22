@@ -8,6 +8,7 @@ import java.util.Date;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+
 public class ActividadDto {
     private Long id;
     private String descripcion;
@@ -23,9 +24,11 @@ public class ActividadDto {
     private Date fechaModificacion;
     private Long proyectoId;
     private String proyectoNombre;
-
+    
+//Esto crea un DTo vacio
     public ActividadDto() {}
 
+    //Esto arma el DTo a partir de una entidad Actividad ya existente
     public ActividadDto(Actividad actividad) {
         if (actividad != null) {
             this.id = actividad.getId();
@@ -48,6 +51,7 @@ public class ActividadDto {
         }
     }
 
+    //Esto convierte el DTO en una entidad lista para guardar o actualizar
     public Actividad toEntity() {
         Actividad actividad = new Actividad();
         actividad.setId(this.id);
