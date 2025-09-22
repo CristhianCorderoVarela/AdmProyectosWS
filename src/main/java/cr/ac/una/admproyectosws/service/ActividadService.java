@@ -12,21 +12,26 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+// Esto concentra la logica para actividades
 @Stateless
 public class ActividadService {
     
+    // Esto accede a la persistencia de actividades
     @EJB
     private ActividadDao actividadDao;
     
+    // Esto permite buscar datos del proyecto
     @EJB
     private ProyectoDao proyectoDao;
     
+    // Esto envía notificaciones por correo
     @EJB
     private EmailService emailService;
     
+     // Esto crea una actividad nueva con validaciones basicas
     public RespuestaGeneral<ActividadDto> crear(ActividadDto dto) {
         try {
-            // Validaciones
+            //validaciones
             if (dto.getDescripcion() == null || dto.getDescripcion().trim().isEmpty()) {
                 return new RespuestaGeneral<>(false, "La descripción de la actividad es requerida");
             }
@@ -57,7 +62,7 @@ public class ActividadService {
             
             actividad = actividadDao.crear(actividad);
             
-            // Enviar notificación
+            
             try {
                 emailService.notificarCreacionActividad(actividad);
             } catch (Exception e) {
@@ -71,6 +76,7 @@ public class ActividadService {
         }
     }
     
+    // Esto actualiza una actividad y notifica si el estado cambió
     public RespuestaGeneral<ActividadDto> actualizar(ActividadDto dto) {
         try {
             Optional<Actividad> actividadOpt = actividadDao.buscarPorId(dto.getId());
@@ -93,7 +99,7 @@ public class ActividadService {
             
             actividad = actividadDao.actualizar(actividad);
             
-            // Notificar cambio de estado
+            
             if (!estadoAnterior.equals(dto.getEstado())) {
                 try {
                     emailService.notificarCambioEstadoActividad(actividad, estadoAnterior);
@@ -109,6 +115,7 @@ public class ActividadService {
         }
     }
     
+    // Esto elimina una actividad
     public RespuestaGeneral<Void> eliminar(Long id) {
         try {
             actividadDao.eliminar(id);
@@ -118,6 +125,7 @@ public class ActividadService {
         }
     }
     
+    // Esto busca las actividades de un proyecto y las retorna como DTOs
     public RespuestaGeneral<List<ActividadDto>> buscarPorProyecto(Long proyectoId) {
         try {
             List<Actividad> actividades = actividadDao.buscarPorProyecto(proyectoId);
@@ -130,6 +138,7 @@ public class ActividadService {
         }
     }
     
+    // Esto reordena las actividades de un proyecto segun el nuevo orden
     public RespuestaGeneral<Void> reordenarActividades(Long proyectoId, List<Long> nuevoOrden) {
         try {
             actividadDao.reordenarActividades(proyectoId, nuevoOrden);

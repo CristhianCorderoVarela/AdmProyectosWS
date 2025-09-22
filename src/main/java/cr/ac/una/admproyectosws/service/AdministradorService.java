@@ -11,15 +11,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+// Esto concentra la logica para administradores
 @Stateless
 public class AdministradorService {
 
+    // Esto accede a la persistencia de administradores
     @EJB
     private AdministradorDao administradorDao;
 
+    
+    // Esto crea un administrador con validaciones y hash de contraseña
+   
     public RespuestaGeneral<AdministradorDto> crear(AdministradorDto dto) {
         try {
-            // Validaciones mínimas
+            // Validaciones 
             if (dto.getNombre() == null || dto.getNombre().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "El nombre es requerido");
             if (dto.getApellidos() == null || dto.getApellidos().trim().isEmpty())
@@ -33,7 +38,7 @@ public class AdministradorService {
             if (dto.getPasswordPlain() == null || dto.getPasswordPlain().trim().isEmpty())
                 return new RespuestaGeneral<>(false, "La contraseña es obligatoria");
 
-            // Unicidad
+            
             if (administradorDao.existeUsuario(dto.getUsuario()))
                 return new RespuestaGeneral<>(false, "Ya existe un administrador con ese usuario");
             if (administradorDao.existeCorreo(dto.getCorreo()))
@@ -41,11 +46,11 @@ public class AdministradorService {
             if (administradorDao.existeCedula(dto.getCedula()))
                 return new RespuestaGeneral<>(false, "Ya existe un administrador con esa cédula");
 
-            // Mapear entidad
+            
             Administrador admin = dto.toEntity();
             if (admin.getEstado() == null) admin.setEstado("ACTIVO");
 
-            // Hashear y guardar
+            
             admin.setPasswordPlain(PasswordUtil.hash(dto.getPasswordPlain()));
 
             admin = administradorDao.crear(admin);
@@ -58,7 +63,7 @@ public class AdministradorService {
             return new RespuestaGeneral<>(false, "Error al crear administrador: " + e.getMessage());
         }
     }
-
+// Esto actualiza los datos de un administrador
     public RespuestaGeneral<AdministradorDto> actualizar(AdministradorDto dto) {
         try {
             Optional<Administrador> adminOpt = administradorDao.buscarPorId(dto.getId());
@@ -74,7 +79,7 @@ public class AdministradorService {
             admin.setUsuario(dto.getUsuario());
             admin.setEstado(dto.getEstado());
 
-            // Si viene nueva contraseña no vacía, la hasheamos y actualizamos
+            
             if (dto.getPasswordPlain() != null && !dto.getPasswordPlain().trim().isEmpty()) {
                 admin.setPasswordPlain(PasswordUtil.hash(dto.getPasswordPlain()));
             }
@@ -90,6 +95,7 @@ public class AdministradorService {
         }
     }
 
+    // Esto elimina un administrador por su id
     public RespuestaGeneral<Void> eliminar(Long id) {
         try {
             administradorDao.eliminar(id);
@@ -99,6 +105,7 @@ public class AdministradorService {
         }
     }
 
+     // Esto busca un administrador por id y oculta la contraseña en la respuesta
     public RespuestaGeneral<AdministradorDto> buscarPorId(Long id) {
         try {
             Optional<Administrador> adminOpt = administradorDao.buscarPorId(id);
@@ -114,6 +121,7 @@ public class AdministradorService {
         }
     }
 
+     // Esto retorna todos los administradores y oculta la contraseña en cada DTO
     public RespuestaGeneral<List<AdministradorDto>> obtenerTodos() {
         try {
             List<Administrador> administradores = administradorDao.obtenerTodos();
@@ -126,6 +134,7 @@ public class AdministradorService {
         }
     }
 
+     // Esto realiza una búsqueda flexible por filtro y oculta la contraseña
     public RespuestaGeneral<List<AdministradorDto>> buscar(String filtro) {
         try {
             List<Administrador> administradores = administradorDao.buscar(filtro);

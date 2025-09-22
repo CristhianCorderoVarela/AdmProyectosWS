@@ -13,6 +13,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ Reglas de negocio para gestionar proyectos.
+  Coordina validaciones de entrada.
+  Interactúa con DAO para persistencia.
+  Da notificaciones por correo según eventos.
+ */
+
+
 @Stateless
 public class ProyectoService {
     
@@ -32,7 +40,7 @@ public class ProyectoService {
     try {
         System.out.println("1. Iniciando creación de proyecto: " + dto.getNombre());
         
-        // Validaciones básicas
+        // Validaciones 
         if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) {
             System.out.println("ERROR: Nombre vacío");
             return new RespuestaGeneral<>(false, "El nombre del proyecto es requerido");
@@ -64,7 +72,7 @@ public class ProyectoService {
         
         System.out.println("3. Administrador encontrado: " + creadorOpt.get().getNombre());
         
-        // Verificar datos del DTO ANTES de convertir a entidad
+        
         System.out.println("4. DATOS DEL DTO RECIBIDO:");
         System.out.println("   - Nombre: " + dto.getNombre());
         System.out.println("   - Patrocinador nombre: " + dto.getPatrocinadorNombre());
@@ -87,7 +95,7 @@ public class ProyectoService {
         proyecto = proyectoDao.crear(proyecto);
         System.out.println("6. Proyecto guardado en BD con ID: " + proyecto.getId());
         
-        // VERIFICAR DATOS DESPUÉS DE GUARDAR EN BD
+        
         System.out.println("7. DATOS DEL PROYECTO DESPUÉS DE GUARDAR:");
         System.out.println("   - ID: " + proyecto.getId());
         System.out.println("   - Nombre: " + proyecto.getNombre());
@@ -99,7 +107,7 @@ public class ProyectoService {
         System.out.println("   - Líder técnico nombre: " + proyecto.getLiderTecnicoNombre());
         System.out.println("   - Líder técnico correo: " + proyecto.getLiderTecnicoCorreo());
         
-        // VERIFICAR SI HAY CORREOS VÁLIDOS PARA NOTIFICAR
+        
         boolean hayCorreos = false;
         if (proyecto.getPatrocinadorCorreo() != null && !proyecto.getPatrocinadorCorreo().trim().isEmpty()) {
             System.out.println("   ✓ Patrocinador correo válido");
@@ -124,7 +132,7 @@ public class ProyectoService {
         
         System.out.println("8. ¿Hay al menos un correo válido? " + hayCorreos);
         
-        // Enviar notificación por correo
+        
         System.out.println("9. INTENTANDO ENVIAR NOTIFICACIÓN...");
         try {
             emailService.notificarCreacionProyecto(proyecto);
@@ -163,7 +171,7 @@ public class ProyectoService {
             Proyecto proyecto = proyectoOpt.get();
             String estadoAnterior = proyecto.getEstado();
             
-            // Actualizar campos
+           
             proyecto.setNombre(dto.getNombre());
             proyecto.setPatrocinadorNombre(dto.getPatrocinadorNombre());
             proyecto.setPatrocinadorCorreo(dto.getPatrocinadorCorreo());
@@ -181,7 +189,7 @@ public class ProyectoService {
             
             proyecto = proyectoDao.actualizar(proyecto);
             
-            // Notificar cambio de estado si es necesario
+           
             if (!estadoAnterior.equals(dto.getEstado())) {
                 try {
                     emailService.notificarCambioEstadoProyecto(proyecto, estadoAnterior);
@@ -243,7 +251,7 @@ public class ProyectoService {
         }
     }
     
-    // Esta es una Implementación usando Streams como lo pide Carranza
+    
     public RespuestaGeneral<List<ProyectoDto>> buscarConStreams(String filtro) {
         try {
             List<ProyectoDto> dtos = proyectoDao.buscarConStreams(filtro)

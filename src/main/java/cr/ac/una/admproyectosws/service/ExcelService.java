@@ -17,6 +17,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+
+/**
+ * Servicio responsable de construir un archivo Excel con el cronograma de un proyecto y sus actividades utilizando Apache POI.
+ 
+  Características:
+  Obtiene el proyecto con sus actividades refrescadas desde la BD.
+  Aplica estilos básicos (encabezados, celdas de datos, fechas).
+  
+ */
+
 @Stateless
 public class ExcelService {
     
@@ -27,7 +37,7 @@ public class ExcelService {
     
     public RespuestaExcel generarCronogramaProyecto(Long proyectoId) {
         try {
-            // === CAMBIO: usar lectura fresca con fetch de colecciones ===
+           
             Optional<Proyecto> proyectoOpt = proyectoDao.buscarPorIdRefrescadoConColecciones(proyectoId);
             if (!proyectoOpt.isPresent()) {
                 return new RespuestaExcel(false, "Proyecto no encontrado");
@@ -35,13 +45,13 @@ public class ExcelService {
             
             Proyecto proyecto = proyectoOpt.get();
             
-            // Crear el archivo Excel
+           
             try (Workbook workbook = new XSSFWorkbook();
                  ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
                 
                 Sheet sheet = workbook.createSheet("Cronograma - " + proyecto.getNombre());
                 
-                // Crear estilos
+                
                 CellStyle headerStyle = crearEstiloEncabezado(workbook);
                 CellStyle projectStyle = crearEstiloProyecto(workbook);
                 CellStyle dataStyle = crearEstiloDatos(workbook);
@@ -49,23 +59,23 @@ public class ExcelService {
                 
                 int rowNum = 0;
                 
-                // Título del proyecto
+               
                 Row titleRow = sheet.createRow(rowNum++);
                 Cell titleCell = titleRow.createCell(0);
                 titleCell.setCellValue("CRONOGRAMA DEL PROYECTO");
                 titleCell.setCellStyle(headerStyle);
                 sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
                 
-                // Espacio
+                
                 rowNum++;
                 
-                // Información del proyecto
+                
                 rowNum = crearInfoProyecto(sheet, proyecto, projectStyle, dataStyle, rowNum);
                 
-                // Espacio
+               
                 rowNum++;
                 
-                // Encabezados de actividades
+                
                 Row headerRow = sheet.createRow(rowNum++);
                 String[] headers = {
                     "Orden", "Descripción", "Encargado", "Estado", 
@@ -78,47 +88,47 @@ public class ExcelService {
                     cell.setCellStyle(headerStyle);
                 }
 
-                // (Opcional) congelar encabezado para scroll cómodo
+               
                 sheet.createFreezePane(0, headerRow.getRowNum() + 1);
                 
-                // Datos de actividades
+                
                 List<Actividad> actividades = proyecto.getActividades();
                 if (actividades != null && !actividades.isEmpty()) {
                     for (Actividad actividad : actividades) {
                         Row row = sheet.createRow(rowNum++);
                         
-                        // Orden
+                        
                         Cell orderCell = row.createCell(0);
                         orderCell.setCellValue(actividad.getOrdenEjecucion() != null ? 
                             actividad.getOrdenEjecucion() : 0);
                         orderCell.setCellStyle(dataStyle);
                         
-                        // Descripción
+                        
                         Cell descCell = row.createCell(1);
                         descCell.setCellValue(actividad.getDescripcion() != null ? 
                             actividad.getDescripcion() : "");
                         descCell.setCellStyle(dataStyle);
                         
-                        // Encargado
+                        
                         Cell encargadoCell = row.createCell(2);
                         encargadoCell.setCellValue(actividad.getEncargadoNombre() != null ? 
                             actividad.getEncargadoNombre() : "");
                         encargadoCell.setCellStyle(dataStyle);
                         
-                        // Estado
+                        
                         Cell estadoCell = row.createCell(3);
                         estadoCell.setCellValue(actividad.getEstado() != null ? 
                             actividad.getEstado() : "");
                         estadoCell.setCellStyle(dataStyle);
                         
-                        // Fechas
+                        
                         crearCeldaFecha(row, 4, actividad.getFechaInicioPlanificada(), dateStyle);
                         crearCeldaFecha(row, 5, actividad.getFechaFinalPlanificada(), dateStyle);
                         crearCeldaFecha(row, 6, actividad.getFechaInicioReal(), dateStyle);
                         crearCeldaFecha(row, 7, actividad.getFechaFinalReal(), dateStyle);
                     }
                 } else {
-                    // Si no hay actividades, mostrar mensaje
+                    
                     Row row = sheet.createRow(rowNum++);
                     Cell cell = row.createCell(1);
                     cell.setCellValue("No hay actividades registradas para este proyecto");
@@ -126,21 +136,20 @@ public class ExcelService {
                     sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 1, 7));
                 }
                 
-                // === CAMBIO: Anchos mínimos grandes + autoSize + tope ===
-                // Unidades POI: 1 carácter ≈ 256 unidades
+                
                 int[] minChars = new int[] { 8, 40, 25, 15, 18, 18, 18, 18 };
                 for (int i = 0; i < headers.length; i++) {
-                    sheet.autoSizeColumn(i); // que crezca si el contenido lo amerita
+                    sheet.autoSizeColumn(i); 
                     int minWidth = minChars[i] * 256;
-                    int maxWidth = 15000; // tope (≈ 58 chars)
+                    int maxWidth = 15000; 
                     int current = sheet.getColumnWidth(i);
                     if (current < minWidth) sheet.setColumnWidth(i, minWidth);
                     else if (current > maxWidth) sheet.setColumnWidth(i, maxWidth);
                 }
-                // Altura por defecto un poco mayor para que el wrap se note
+                
                 sheet.setDefaultRowHeightInPoints(18f);
                 
-                // Escribir a byte array
+                
                 workbook.write(outputStream);
                 
                 String nombreArchivo = "Cronograma_" + proyecto.getNombre().replaceAll("[^a-zA-Z0-9]", "_") + 
@@ -161,7 +170,7 @@ public class ExcelService {
                                  CellStyle dataStyle, int startRow) {
         int rowNum = startRow;
         
-        // Nombre del proyecto
+       
         Row proyectoRow = sheet.createRow(rowNum++);
         Cell proyectoLabelCell = proyectoRow.createCell(0);
         proyectoLabelCell.setCellValue("PROYECTO:");
@@ -171,7 +180,7 @@ public class ExcelService {
         proyectoValueCell.setCellStyle(dataStyle);
         sheet.addMergedRegion(new CellRangeAddress(rowNum-1, rowNum-1, 1, 4));
         
-        // Patrocinador
+        
         Row patrocinadoRow = sheet.createRow(rowNum++);
         Cell patrocinadoLabelCell = patrocinadoRow.createCell(0);
         patrocinadoLabelCell.setCellValue("PATROCINADOR:");
@@ -180,7 +189,7 @@ public class ExcelService {
         patrocinadoValueCell.setCellValue(proyecto.getPatrocinadorNombre());
         patrocinadoValueCell.setCellStyle(dataStyle);
         
-        // Estado
+        
         Row estadoRow = sheet.createRow(rowNum++);
         Cell estadoLabelCell = estadoRow.createCell(0);
         estadoLabelCell.setCellValue("ESTADO:");
@@ -189,7 +198,7 @@ public class ExcelService {
         estadoValueCell.setCellValue(proyecto.getEstado());
         estadoValueCell.setCellStyle(dataStyle);
         
-        // Porcentaje de avance
+       
         Cell avanceLabelCell = estadoRow.createCell(3);
         avanceLabelCell.setCellValue("% AVANCE:");
         avanceLabelCell.setCellStyle(projectStyle);

@@ -27,20 +27,28 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+/**
+  Servicio de correos para eventos de Proyectos, Actividades y Seguimientos.
+  - Stateless EJB para permitir ejecución concurrente sin estado.
+ */
+
+
+
+
 @Stateless
 public class EmailService {
 
-    // Identidad de marca
+   
     private static final String BRAND_NAME  = "Projex";
-    private static final String BRAND_COLOR = "#0ea5e9"; // celeste corporativo
-    private static final String BRAND_ACCENT = "#0369a1"; // más oscuro para header
+    private static final String BRAND_COLOR = "#0ea5e9"; 
+    private static final String BRAND_ACCENT = "#0369a1"; 
 
     // Colores por evento (cada uno diferente)
-    private static final String COLOR_PROYECTO_CREADO          = BRAND_ACCENT; // celeste (como ya estaba)
-    private static final String COLOR_PROYECTO_CAMBIO_ESTADO   = "#16a34a";    // verde
-    private static final String COLOR_ACTIVIDAD_CREADA         = "#f59e0b";    // ámbar
-    private static final String COLOR_ACTIVIDAD_CAMBIO_ESTADO  = "#9333ea";    // morado
-    private static final String COLOR_SEGUIMIENTO              = "#6366f1";    // índigo
+    private static final String COLOR_PROYECTO_CREADO          = BRAND_ACCENT; 
+    private static final String COLOR_PROYECTO_CAMBIO_ESTADO   = "#16a34a";    
+    private static final String COLOR_ACTIVIDAD_CREADA         = "#f59e0b";    
+    private static final String COLOR_ACTIVIDAD_CAMBIO_ESTADO  = "#9333ea";    
+    private static final String COLOR_SEGUIMIENTO              = "#6366f1";    
 
     @Asynchronous
     public void notificarCreacionProyecto(Proyecto proyecto) {
@@ -172,14 +180,14 @@ public class EmailService {
         try {
             System.out.println("[EmailService] Iniciando envío de correo: " + subject);
 
-            // CORREGIDO: Usar collect(Collectors.toList()) en lugar de toList()
+           
             List<String> limpios = destinatarios == null ? Arrays.asList()
                     : destinatarios.stream()
                     .filter(Objects::nonNull)
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .distinct()
-                    .collect(Collectors.toList()); // ESTE ERA EL PROBLEMA
+                    .collect(Collectors.toList()); 
 
             if (limpios.isEmpty()) {
                 System.out.println("[EmailService] No hay destinatarios válidos. Se omite el envío.");
@@ -213,15 +221,15 @@ public class EmailService {
                 }
             });
 
-            // Crear mensaje
+            
             MimeMessage msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(user));
 
-            // Convertir destinatarios - CORREGIDO
+            
             InternetAddress[] addresses = limpios.stream()
                     .map(this::createAddress)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList())  // CAMBIADO DE toArray() directo
+                    .collect(Collectors.toList())  
                     .toArray(new InternetAddress[0]);
 
             msg.setRecipients(Message.RecipientType.TO, addresses);
@@ -258,7 +266,7 @@ public class EmailService {
         }
     }
 
-    // ========= Wrapper base (celeste por defecto, ya usado por "Proyecto creado") =========
+    
     private String wrapEmail(String preheader, String title, String contentHtml) {
         return """
         <!doctype html>
@@ -323,19 +331,19 @@ public class EmailService {
         </body>
         </html>
         """.formatted(
-            escape(title),                 // <title>
-            escape(preheader),             // preheader
-            BRAND_ACCENT,                  // header color (celeste por defecto)
-            BRAND_NAME,                    // brand
-            escape(title),                 // H1
-            contentHtml,                   // cuerpo
-            BRAND_NAME,                    // firma
+            escape(title),                
+            escape(preheader),            
+            BRAND_ACCENT,                  
+            BRAND_NAME,                   
+            escape(title),                 
+            contentHtml,                  
+            BRAND_NAME,                   
             new java.text.SimpleDateFormat("yyyy").format(new java.util.Date()),
             BRAND_NAME
         );
     }
 
-    // Variante con color personalizado para el header
+    
     private String wrapEmailWithColor(String preheader, String title, String contentHtml, String headerColor) {
         return """
         <!doctype html>
@@ -412,15 +420,15 @@ public class EmailService {
         );
     }
 
-    // Helper para escapar caracteres
+    
     private String escape(String s) {
         if (s == null) return "";
         return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;");
     }
 
-    // ===== Diseños por evento =====
+   
 
-    // 1) PROYECTO CREADO (celeste)
+    
     private String construirHtmlProyecto(Proyecto proyecto, String accion) {
         String nombreProyecto = val(proyecto.getNombre());
 
@@ -480,7 +488,7 @@ public class EmailService {
         return wrapEmail(preheader, titulo, cuerpo); // celeste por defecto
     }
 
-    // 2) CAMBIO DE ESTADO DE PROYECTO (verde)
+    
     private String construirHtmlCambioEstado(Proyecto proyecto, String estadoAnterior) {
         String nombreProyecto = val(proyecto.getNombre());
         String nuevoEstado = val(proyecto.getEstado());
@@ -523,7 +531,7 @@ public class EmailService {
         return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_PROYECTO_CAMBIO_ESTADO);
     }
 
-    // 3) ACTIVIDAD CREADA (ámbar)
+    
     private String construirHtmlActividad(Actividad actividad, String accion) {
         String proyectoNombre = val(actividad.getProyecto() != null ? actividad.getProyecto().getNombre() : null);
 
@@ -574,7 +582,7 @@ public class EmailService {
         return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_ACTIVIDAD_CREADA);
     }
 
-    // 4) CAMBIO DE ESTADO DE ACTIVIDAD (morado)
+   
     private String construirHtmlCambioEstadoActividad(Actividad actividad, String estadoAnterior) {
         String proyectoNombre = val(actividad.getProyecto() != null ? actividad.getProyecto().getNombre() : null);
 
@@ -621,7 +629,7 @@ public class EmailService {
         return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_ACTIVIDAD_CAMBIO_ESTADO);
     }
 
-    // 5) SEGUIMIENTO (índigo)
+    
     private String construirHtmlSeguimiento(SeguimientoProyecto seguimiento) {
         String proyectoNombre = val(seguimiento.getProyecto() != null ? seguimiento.getProyecto().getNombre() : null);
         String avance = (seguimiento.getPorcentajeAvance() == null) ? "—" : (seguimiento.getPorcentajeAvance() + "%");
@@ -666,7 +674,7 @@ public class EmailService {
         return wrapEmailWithColor(preheader, titulo, cuerpo, COLOR_SEGUIMIENTO);
     }
 
-    // ===== Utilidades existentes =====
+   
 
     private Properties cargarMailProperties() {
         System.out.println("[EmailService] Cargando mail.properties...");

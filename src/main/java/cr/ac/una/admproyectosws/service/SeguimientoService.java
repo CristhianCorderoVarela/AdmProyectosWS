@@ -19,6 +19,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+/**
+  Servicio de casos de uso para Seguimiento de Proyecto.
+  Encapsula reglas de validación, persistencia y notificaciones.
+ */
+
 @Stateless
 public class SeguimientoService {
     
@@ -30,7 +36,7 @@ public class SeguimientoService {
     @PersistenceContext(unitName = "ProyectoPU")
     private EntityManager em;
 
-    // ====== CRUD ======
+    
 
     public RespuestaWsLista crear(SeguimientoProyectoDto dto) {
     try {
@@ -110,7 +116,7 @@ public class SeguimientoService {
         }
     }
 
-    // ====== Consultas ======
+    
 
     public RespuestaWsLista buscarPorProyecto(Long proyectoId) {
         try {
@@ -147,7 +153,7 @@ public class SeguimientoService {
         }
     }
 
-    // ====== Helpers ======
+    
     private void validar(SeguimientoProyectoDto d, boolean esCrear) {
         if (esCrear && d.getProyectoId() == null)
             throw new IllegalArgumentException("proyectoId es requerido");
