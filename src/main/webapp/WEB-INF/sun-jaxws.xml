@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <endpoints version="2.0"
   xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime">
+     <!-- Esto hace el inicio de sesión y valida usuarios. -->
   <endpoint name="AuthWS"
             implementation="cr.ac.una.admproyectosws.ws.AuthWS"
             url-pattern="/AuthService/AuthWS"/>
+  <!-- Esto sirve para gestionar administradores (crear, editar, buscar). -->
   <endpoint name="AdministradorWS"
             implementation="cr.ac.una.admproyectosws.ws.AdministradorWS"
             url-pattern="/AdministradorService/AdministradorWS"/>
+  <!-- Esto sirve para gestionar proyectos. -->
   <endpoint name="ProyectoWS"
             implementation="cr.ac.una.admproyectosws.ws.ProyectoWS"
             url-pattern="/ProyectoService/ProyectoWS"/>
+  <!-- Esto sirve para gestionar actividades de los proyectos. -->
   <endpoint name="ActividadWS"
             implementation="cr.ac.una.admproyectosws.ws.ActividadWS"
             url-pattern="/ActividadService/ActividadWS"/>
+  <!-- Esto hace el registro y consulta de seguimientos del proyecto. -->
   <endpoint name="SeguimientoWS"
             implementation="cr.ac.una.admproyectosws.ws.SeguimientoWS"
             url-pattern="/SeguimientoService/SeguimientoWS"/>
+  <!-- Esto hace la descarga de reportes en Excel. -->
   <endpoint name="ReporteWS"
             implementation="cr.ac.una.admproyectosws.ws.ReporteWS"
             url-pattern="/ExcelService/ReporteWS"/>

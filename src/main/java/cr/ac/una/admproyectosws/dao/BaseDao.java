@@ -1,4 +1,3 @@
-// ============= BASEDAO.JAVA (Clase base opcional) =============
 package cr.ac.una.admproyectosws.dao;
 
 import jakarta.persistence.EntityManager;
@@ -6,11 +5,6 @@ import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Clase base abstracta para los DAOs que proporciona operaciones CRUD básicas
- * @param <T> Tipo de la entidad
- * @param <ID> Tipo del ID de la entidad
- */
 public abstract class BaseDao<T, ID> {
     
     @PersistenceContext(unitName = "ProyectoPU")
@@ -18,20 +12,24 @@ public abstract class BaseDao<T, ID> {
     
     private final Class<T> entityClass;
     
+    // Esto deja listo con que tipo de entidad va a trabajar esta clase.
     protected BaseDao(Class<T> entityClass) {
         this.entityClass = entityClass;
     }
     
+    // Esto guarda una entidad nueva y la devuelve tal como quedó.
     public T crear(T entity) {
         em.persist(entity);
         em.flush();
         return entity;
     }
     
+    // Esto actualiza la entidad y devuelve la versión actualizada.
     public T actualizar(T entity) {
         return em.merge(entity);
     }
     
+    // Esto borra la entidad por su id si existe.
     public void eliminar(ID id) {
         T entity = em.find(entityClass, id);
         if (entity != null) {
@@ -39,6 +37,7 @@ public abstract class BaseDao<T, ID> {
         }
     }
     
+    // Esto busca una entidad por id y te la devuelve si aparece.
     public Optional<T> buscarPorId(ID id) {
         try {
             T entity = em.find(entityClass, id);
@@ -48,11 +47,13 @@ public abstract class BaseDao<T, ID> {
         }
     }
     
+    // Esto trae todas las entidades de ese tipo.
     public List<T> obtenerTodos() {
         String jpql = "SELECT e FROM " + entityClass.getSimpleName() + " e";
         return em.createQuery(jpql, entityClass).getResultList();
     }
     
+    // Esto dice cuantos registros hay de ese tipo.
     public Long contar() {
         String jpql = "SELECT COUNT(e) FROM " + entityClass.getSimpleName() + " e";
         return em.createQuery(jpql, Long.class).getSingleResult();
